@@ -25,28 +25,24 @@ using namespace std;
 #define STUDENT_FILE "students.bin"
 #define TEACHER_FILE "teachers.bin"
 #define ADMIN_FILE "admins.bin"
+void loadStudentsToLinkList();
 //////////////////////////////////////////////////////////////////////////////////////
 //隐藏式输入密码，输入结果存入pwd，max_len为密码最大长度
-void inputPassword(char* pwd, int max_len)
-{
+void inputPassword(char* pwd, int max_len) {
     int i = 0;
     char ch;
     memset(pwd, 0, max_len);  // 清空密码数组
     printf("请输入密码：");
-    while (1)
-    {
+    while (1) {
         ch = _getch();  // 无回显获取按键
-        if (ch == '\r' || ch == '\n')
-        {  // 按回车结束输入
+        if (ch == '\r' || ch == '\n') {  // 按回车结束输入
             break;
         }
-        else if (ch == '\b' && i > 0)
-        {  // 按退格键删除
+        else if (ch == '\b' && i > 0) {  // 按退格键删除
             printf("\b \b");  // 删掉屏幕上的*
             i--;
         }
-        else if (i < max_len - 1)
-        {  // 正常输入字符
+        else if (i < max_len - 1) {  // 正常输入字符
             pwd[i++] = ch;
             printf("%c", PWD_MASK);    // 显示*
         }
@@ -54,10 +50,21 @@ void inputPassword(char* pwd, int max_len)
     printf("\n");
 }
 
+// 清空输入缓冲区
+void clearInputBuffer() {
+    while (getchar() != '\n'); // 读取并丢弃缓冲区所有字符，直到回车
+}
+// 判断字符串是否为数字（用于学号/成绩验证）
+int isNumber(char* str) {
+    for (int i = 0; str[i] != '\0'; i++) {
+        if (!isdigit(str[i]))
+            return 0;
+    }
+    return 1;
+}
 //////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct Student
-{
+typedef struct Student {
     char id[MAX_ID_LEN];           //学号
     char password[PASSWORD_LEN];   //密码
     char name[MAX_NAME_LEN];       //姓名
@@ -76,21 +83,17 @@ typedef struct Student
 };
 
 // 学生登录验证：返回1表示登录成功，0失败，-1文件错误
-int studentLogin(char* inputId, char* inputPwd)
-{
+int studentLogin(char* inputId, char* inputPwd) {
     FILE* fp = fopen(STUDENT_FILE, "rb");
-    if (fp == NULL)
-    {
+    if (fp == NULL) {
         printf("账号文件不存在或打开失败！\n");
         return -1;
     }
     Student stu;
     // 循环读取文件中的每个学生信息
-    while (fread(&stu, sizeof(Student), 1, fp) == 1)
-    {
+    while (fread(&stu, sizeof(Student), 1, fp) == 1) {
         // 比对学号和密码
-        if (strcmp(stu.id, inputId) == 0 && strcmp(stu.password, inputPwd) == 0)
-        {
+        if (strcmp(stu.id, inputId) == 0 && strcmp(stu.password, inputPwd) == 0) {
             fclose(fp);
             printf("登录成功！欢迎你，%s同学\n", stu.name);
             return 1;
@@ -102,12 +105,10 @@ int studentLogin(char* inputId, char* inputPwd)
 }
 
 // 学生账号注册：返回1成功，0失败（账号已存在），-1文件错误
-int studentRegister()
-{
+int studentRegister() {
     Student newStu;
     FILE* fp = fopen(STUDENT_FILE, "ab+");  // 追加+二进制模式
-    if (fp == NULL)
-    {
+    if (fp == NULL) {
         printf("文件打开失败！\n");
         return -1;
     }
@@ -117,10 +118,8 @@ int studentRegister()
     // 先检查账号是否重复
     Student temp;
     fseek(fp, 0, SEEK_SET);  // 回到文件开头
-    while (fread(&temp, sizeof(Student), 1, fp) == 1)
-    {
-        if (strcmp(temp.id, newStu.id) == 0)
-        {
+    while (fread(&temp, sizeof(Student), 1, fp) == 1) {
+        if (strcmp(temp.id, newStu.id) == 0) {
             fclose(fp);
             printf("该学号已注册！\n");
             return 0;
@@ -134,14 +133,12 @@ int studentRegister()
     inputPassword(pwd1, 20);
     printf("请再次输入密码：");
     inputPassword(pwd2, 20);
-    if (strcmp(pwd1, pwd2) != 0)
-    {
+    if (strcmp(pwd1, pwd2) != 0) {
         fclose(fp);
         printf("两次密码输入不一致！\n");
         return 0;
     }
     strcpy(newStu.password, pwd1);
-
     // 4. 写入文件
     fwrite(&newStu, sizeof(Student), 1, fp);
     fclose(fp);
@@ -150,30 +147,25 @@ int studentRegister()
 }
 
 // 修改学生密码：输入原账号和原密码，验证通过后修改
-int changeStudentPwd(char* inputId, char* oldPwd)
-{
+int changeStudentPwd(char* inputId, char* oldPwd) {
     FILE* fp;
     errno_t err = fopen_s(&fp, STUDENT_FILE, "rb+");
-    if (err != 0 || fp == NULL)
-    {
+    if (err != 0 || fp == NULL) {
         printf("文件打开失败！\n");
         return -1;
     }
 
     Student stu;
     int found = 0;
-    while (fread(&stu, sizeof(Student), 1, fp) == 1)
-    {
-        if (strcmp(stu.id, inputId) == 0 && strcmp(stu.password, oldPwd) == 0)
-        {
+    while (fread(&stu, sizeof(Student), 1, fp) == 1) {
+        if (strcmp(stu.id, inputId) == 0 && strcmp(stu.password, oldPwd) == 0) {
             found = 1;
             char newPwd1[20], newPwd2[20];
             printf("请输入新密码：");
             inputPassword(newPwd1, 20);
             printf("请再次输入新密码：");
             inputPassword(newPwd2, 20);
-            if (strcmp(newPwd1, newPwd2) != 0)
-            {
+            if (strcmp(newPwd1, newPwd2) != 0) {
                 fclose(fp);
                 printf("两次密码不一致！\n");
                 return 0;
@@ -197,8 +189,7 @@ int changeStudentPwd(char* inputId, char* oldPwd)
 ///////////////////////////////////////////////////////////////////////////////////////
 // 教师账号文件路径
 
-typedef struct Teacher
-{
+typedef struct Teacher {
     char id[MAX_ID_LEN];           //工号
     char password[PASSWORD_LEN];   //密码
     char name[MAX_NAME_LEN];       //姓名
@@ -208,22 +199,18 @@ typedef struct Teacher
 };
 
 // 教师登录验证：返回1成功，0失败，-1文件错误
-int teacherLogin(char* inputId, char* inputPwd)
-{
+int teacherLogin(char* inputId, char* inputPwd) {
     FILE* fp;
     errno_t err = fopen_s(&fp, TEACHER_FILE, "rb");
-    if (err != 0 || fp == NULL)
-    {
+    if (err != 0 || fp == NULL) {
         printf("教师账号文件不存在或打开失败！\n");
         return -1;
     }
     Teacher tea;
     // 循环读取每个教师信息
-    while (fread(&tea, sizeof(Teacher), 1, fp) == 1)
-    {
+    while (fread(&tea, sizeof(Teacher), 1, fp) == 1) {
         // 比对工号和密码
-        if (strcmp(tea.id, inputId) == 0 && strcmp(tea.password, inputPwd) == 0)
-        {
+        if (strcmp(tea.id, inputId) == 0 && strcmp(tea.password, inputPwd) == 0) {
             fclose(fp);
             printf("登录成功！欢迎你，%s老师\n", tea.name);
             // 额外返回教师管理的班级信息（可选）
@@ -237,26 +224,21 @@ int teacherLogin(char* inputId, char* inputPwd)
 }
 
 // 教师账号注册：返回1成功，0失败（账号已存在），-1文件错误
-int teacherRegister()
-{
+int teacherRegister() {
     Teacher newTea;
     FILE* fp;
     errno_t err = fopen_s(&fp, TEACHER_FILE, "ab+");  // 追加+二进制模式
-    if (err != 0 || fp == NULL)
-    {
+    if (err != 0 || fp == NULL) {
         printf("文件打开失败！\n");
         return -1;
     }
-
     // 1. 输入工号并检查是否重复
     printf("请输入教师工号（账号）：");
     scanf("%s", newTea.id);
     Teacher temp;
     fseek(fp, 0, SEEK_SET);  // 回到文件开头
-    while (fread(&temp, sizeof(Teacher), 1, fp) == 1)
-    {
-        if (strcmp(temp.id, newTea.id) == 0)
-        {
+    while (fread(&temp, sizeof(Teacher), 1, fp) == 1) {
+        if (strcmp(temp.id, newTea.id) == 0) {
             fclose(fp);
             printf("该教师工号已注册！\n");
             return 0;
@@ -274,8 +256,7 @@ int teacherRegister()
     inputPassword(pwd1, 20);
     printf("请再次输入密码：");
     inputPassword(pwd2, 20);
-    if (strcmp(pwd1, pwd2) != 0)
-    {
+    if (strcmp(pwd1, pwd2) != 0) {
         fclose(fp);
         printf("两次密码输入不一致！\n");
         return 0;
@@ -290,21 +271,17 @@ int teacherRegister()
 }
 
 // 修改教师密码：输入原工号和原密码，验证通过后修改
-int changeTeacherPwd(char* inputId, char* oldPwd)
-{
+int changeTeacherPwd(char* inputId, char* oldPwd) {
     FILE* fp;
     errno_t err = fopen_s(&fp, TEACHER_FILE, "rb+");  // 读写模式
-    if (err != 0 || fp == NULL)
-    {
+    if (err != 0 || fp == NULL) {
         printf("文件打开失败！\n");
         return -1;
     }
     Teacher tea;
     int found = 0;
-    while (fread(&tea, sizeof(Teacher), 1, fp) == 1)
-    {
-        if (strcmp(tea.id, inputId) == 0 && strcmp(tea.password, oldPwd) == 0)
-        {
+    while (fread(&tea, sizeof(Teacher), 1, fp) == 1) {
+        if (strcmp(tea.id, inputId) == 0 && strcmp(tea.password, oldPwd) == 0) {
             found = 1;
             // 输入新密码
             char newPwd1[20], newPwd2[20];
@@ -312,8 +289,7 @@ int changeTeacherPwd(char* inputId, char* oldPwd)
             inputPassword(newPwd1, 20);
             printf("请再次输入新密码：");
             inputPassword(newPwd2, 20);
-            if (strcmp(newPwd1, newPwd2) != 0)
-            {
+            if (strcmp(newPwd1, newPwd2) != 0) {
                 fclose(fp);
                 printf("两次密码不一致！\n");
                 return 0;
@@ -335,29 +311,24 @@ int changeTeacherPwd(char* inputId, char* oldPwd)
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct Admin
-{
+typedef struct Admin {
     char id[MAX_ID_LEN];           //学号
     char password[PASSWORD_LEN];   //密码
     char name[MAX_NAME_LEN];       //姓名
 };
 
 // 管理员登录验证：返回1成功，0失败，-1文件错误
-int adminLogin(char* inputId, char* inputPwd)
-{
+int adminLogin(char* inputId, char* inputPwd) {
     FILE* fp;
     errno_t err = fopen_s(&fp, ADMIN_FILE, "rb");
-    if (err != 0 || fp == NULL)
-    {
+    if (err != 0 || fp == NULL) {
         printf("管理员账号文件不存在或打开失败！\n");
         return -1;
     }
     Admin admin;
-    while (fread(&admin, sizeof(Admin), 1, fp) == 1)
-    {
+    while (fread(&admin, sizeof(Admin), 1, fp) == 1) {
         // 比对管理员工号和密码
-        if (strcmp(admin.id, inputId) == 0 && strcmp(admin.password, inputPwd) == 0)
-        {
+        if (strcmp(admin.id, inputId) == 0 && strcmp(admin.password, inputPwd) == 0) {
             fclose(fp);
             printf("登录成功！欢迎进入管理员后台系统\n");
             printf("【提示】你拥有最高权限，可管理所有账号和成绩数据\n");
@@ -371,13 +342,11 @@ int adminLogin(char* inputId, char* inputPwd)
 
 // 管理员账号注册：返回1成功，0失败（账号已存在），-1文件错误
 // 注：实际项目中管理员账号通常由超级管理员创建，此函数仅用于测试
-int adminRegister()
-{
+int adminRegister() {
     Admin newAdmin;
     FILE* fp;
     errno_t err = fopen_s(&fp, ADMIN_FILE, "ab+");
-    if (err != 0 || fp == NULL)
-    {
+    if (err != 0 || fp == NULL) {
         printf("文件打开失败！\n");
         return -1;
     }
@@ -386,10 +355,8 @@ int adminRegister()
     scanf("%s", newAdmin.id);
     Admin temp;
     fseek(fp, 0, SEEK_SET);
-    while (fread(&temp, sizeof(Admin), 1, fp) == 1)
-    {
-        if (strcmp(temp.id, newAdmin.id) == 0)
-        {
+    while (fread(&temp, sizeof(Admin), 1, fp) == 1) {
+        if (strcmp(temp.id, newAdmin.id) == 0) {
             fclose(fp);
             printf("该管理员工号已注册！\n");
             return 0;
@@ -400,8 +367,7 @@ int adminRegister()
     inputPassword(pwd1, 20);
     printf("请再次输入密码：");
     inputPassword(pwd2, 20);
-    if (strcmp(pwd1, pwd2) != 0)
-    {
+    if (strcmp(pwd1, pwd2) != 0) {
         fclose(fp);
         printf("两次密码输入不一致！\n");
         return 0;
@@ -415,21 +381,17 @@ int adminRegister()
 }
 
 // 修改管理员密码：输入原工号和原密码，验证通过后修改
-int changeAdminPwd(char* inputId, char* oldPwd)
-{
+int changeAdminPwd(char* inputId, char* oldPwd) {
     FILE* fp;
     errno_t err = fopen_s(&fp, ADMIN_FILE, "rb+");
-    if (err != 0 || fp == NULL)
-    {
+    if (err != 0 || fp == NULL) {
         printf("文件打开失败！\n");
         return -1;
     }
     Admin admin;
     int found = 0;
-    while (fread(&admin, sizeof(Admin), 1, fp) == 1)
-    {
-        if (strcmp(admin.id, inputId) == 0 && strcmp(admin.password, oldPwd) == 0)
-        {
+    while (fread(&admin, sizeof(Admin), 1, fp) == 1) {
+        if (strcmp(admin.id, inputId) == 0 && strcmp(admin.password, oldPwd) == 0) {
             found = 1;
             // 输入新密码
             char newPwd1[20], newPwd2[20];
@@ -437,8 +399,7 @@ int changeAdminPwd(char* inputId, char* oldPwd)
             inputPassword(newPwd1, 20);
             printf("请再次输入新密码：");
             inputPassword(newPwd2, 20);
-            if (strcmp(newPwd1, newPwd2) != 0)
-            {
+            if (strcmp(newPwd1, newPwd2) != 0) {
                 fclose(fp);
                 printf("两次密码不一致！\n");
                 return 0;
@@ -452,8 +413,7 @@ int changeAdminPwd(char* inputId, char* oldPwd)
     }
 
     fclose(fp);
-    if (!found)
-    {
+    if (!found) {
         printf("管理员工号或原密码错误！\n");
         return 0;
     }
@@ -461,8 +421,7 @@ int changeAdminPwd(char* inputId, char* oldPwd)
     return 1;
 }
 /////////////////////////////////////////////////////////////////////////////////////////
-void welcomeScreen()
-{
+void welcomeScreen() {
     cout << "*************************************************" << endl;
     cout << "*************************************************" << endl;
     cout << "**                                             **" << endl;
@@ -479,8 +438,7 @@ void welcomeScreen()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
-void loginscreen()
-{
+void loginscreen() {
     cout << "*************************************************" << endl;
     cout << "*************************************************" << endl;
     cout << "**                     登录                    **" << endl;
@@ -495,8 +453,7 @@ void loginscreen()
     cout << "*************************************************" << endl;
 }
 ////////////////////////////////////////////////////////////////////////////////////
-void studentMainscreen()
-{
+void studentMainscreen() {
     cout << "*************************************************" << endl;
     cout << "*************************************************" << endl;
     cout << "**                   Student                   **" << endl;
@@ -510,8 +467,7 @@ void studentMainscreen()
     cout << "*************************************************" << endl;
 }
 //////////////////////////////////////////////////////////////////////////////////
-void teacherMainscreen()
-{
+void teacherMainscreen() {
     cout << "*************************************************" << endl;
     cout << "*************************************************" << endl;
     cout << "**                   Teacher                   **" << endl;
@@ -526,8 +482,7 @@ void teacherMainscreen()
     cout << "*************************************************" << endl;
 }
 ///////////////////////////////////////////////////////////////////////////////////
-void managerMainscreen()
-{
+void managerMainscreen() {
     cout << "*************************************************" << endl;
     cout << "*************************************************" << endl;
     cout << "**                   Manager                   **" << endl;
@@ -542,8 +497,7 @@ void managerMainscreen()
     cout << "*************************************************" << endl;
 }
 
-int main()
-{
+int main() {
 first:
     welcomeScreen();
     cout << "请输入您所需的操作：";
@@ -552,15 +506,13 @@ first:
     char inpassWord[20];
     cin >> op;
     system("cls");
-    switch (op)
-    {
+    switch (op) {
     case 1://student端
         loginscreen();
         cout << "请输入您所需的操作：";
         int op1;
         cin >> op1;
-        switch (op1)
-        {
+        switch (op1) {
         case 1://直接登录
             cout << "请输入账号：";
             cin >> inID;
@@ -590,8 +542,7 @@ first:
         cout << "请输入您所需的操作：";
         int op2;
         cin >> op2;
-        switch (op2)
-        {
+        switch (op2){
         case 1://直接登录
             cout << "请输入账号：";
             cin >> inID;
@@ -621,8 +572,7 @@ first:
         cout << "请输入您所需的操作：";
         int op3;
         cin >> op3;
-        switch (op3)
-        {
+        switch (op3) {
         case 1://直接登录
             cout << "请输入管理员工号：";
             cin >> inID;
