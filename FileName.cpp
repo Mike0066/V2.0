@@ -81,6 +81,12 @@ typedef struct Student {
     int rank;                    //排名
     struct Student* next;
 };
+Student loginStudent;
+// 计算总分
+void calculateTotalScore(Student* stu) {
+    stu->total_score = (float)(stu->chinese + stu->math + stu->english +
+        stu->physics + stu->chemistry + stu->biology);
+}
 
 // 学生登录验证：返回1表示登录成功，0失败，-1文件错误
 int studentLogin(char* inputId, char* inputPwd) {
@@ -94,6 +100,10 @@ int studentLogin(char* inputId, char* inputPwd) {
     while (fread(&stu, sizeof(Student), 1, fp) == 1) {
         // 比对学号和密码
         if (strcmp(stu.id, inputId) == 0 && strcmp(stu.password, inputPwd) == 0) {
+            // 新增：将登录学生信息赋值给全局变量
+            memcpy(&loginStudent, &stu, sizeof(Student));
+            // 新增：加载学生链表（确保成绩数据可用）
+            loadStudentsToLinkList();
             fclose(fp);
             printf("登录成功！欢迎你，%s同学\n", stu.name);
             return 1;
@@ -128,6 +138,22 @@ int studentRegister() {
     // 2. 输入其他信息
     printf("请输入姓名：");
     scanf("%s", newStu.name);
+    printf("请输入班级（如：高一(1)班）：");
+    scanf("%s", newStu.classname);
+    printf("请输入年龄：");
+    scanf("%d", &newStu.age);
+    printf("请输入性别（M/F）：");
+    scanf(" %c", &newStu.sex);
+    newStu.chinese = 0;
+    newStu.math = 0;
+    newStu.english = 0;
+    newStu.physics = 0;
+    newStu.chemistry = 0;
+    newStu.biology = 0;
+    // 计算总分（初始为0）
+    calculateTotalScore(&newStu);
+    newStu.rank = 0;
+    newStu.next = NULL;
     // 3. 隐藏输入密码
     char pwd1[20], pwd2[20];
     inputPassword(pwd1, 20);
@@ -139,6 +165,7 @@ int studentRegister() {
         return 0;
     }
     strcpy(newStu.password, pwd1);
+
     // 4. 写入文件
     fwrite(&newStu, sizeof(Student), 1, fp);
     fclose(fp);
@@ -158,7 +185,7 @@ int changeStudentPwd(char* inputId, char* oldPwd) {
     Student stu;
     int found = 0;
     while (fread(&stu, sizeof(Student), 1, fp) == 1) {
-        if (strcmp(stu.id, inputId) == 0 && strcmp(stu.password, oldPwd) == 0) {
+        if (strcmp(stu.id, inputId) == 0 && strcmp(stu.password, oldPwd) == 0){
             found = 1;
             char newPwd1[20], newPwd2[20];
             printf("请输入新密码：");
@@ -185,6 +212,307 @@ int changeStudentPwd(char* inputId, char* oldPwd) {
     return 1;
 }
 
+Student* stuListHead = NULL;    // 学生链表头节点
+
+//查询个人成绩
+void queryMyScore(){
+    Student* temp = stuListHead;
+    while (temp != NULL) {
+        if (strcmp(temp->id, loginStudent.id) == 0) {
+            printf("\n================== 个人成绩详情 =================\n");
+            printf("学号：%s\t姓名：%s\t班级：%s\n", temp->id, temp->name, temp->classname);
+            printf("年龄：%d\t性别：%c\n", temp->age, temp->sex);
+            printf("-------------------------------------------------\n");
+            printf("语文：%d\t数学：%d\t英语：%d\n", temp->chinese, temp->math, temp->english);
+            printf("物理：%d\t化学：%d\t生物：%d\n", temp->physics, temp->chemistry, temp->biology);
+            printf("-------------------------------------------------\n");
+            printf("总分：%.1f\t班级排名：第%d名\n", temp->total_score, temp->rank);
+            return;
+        }
+        temp = temp->next;
+    }
+    printf("暂无你的成绩数据！\n");
+}
+
+// 按班级分组计算排名（每个班级独立排名）
+void sortStudentByTotalScoreByClass() {
+    if (stuListHead == NULL) return;
+
+    // 1. 先按班级分组，存储每个班级的学生链表
+    char currentClass[MAX_CLASS_LEN];
+    Student* classHead = NULL; // 临时存储当前班级的学生
+
+    Student* temp = stuListHead;
+    while (temp != NULL) {
+        strcpy(currentClass, temp->classname);
+        // 提取当前班级的所有学生到classHead
+        classHead = NULL;
+        Student* classTail = NULL;
+        Student* p = stuListHead;
+        while (p != NULL) {
+            if (strcmp(p->classname, currentClass) == 0) {
+                Student* newNode = (Student*)malloc(sizeof(Student));
+                memcpy(newNode, p, sizeof(Student));
+                newNode->next = NULL;
+                if (classHead == NULL) {
+                    classHead = newNode;
+                    classTail = newNode;
+                }
+                else {
+                    classTail->next = newNode;
+                    classTail = newNode;
+                }
+            }
+            p = p->next;
+        }
+
+        // 2. 对当前班级的学生排序（降序）
+        if (classHead != NULL && classHead->next != NULL){
+            int swapped;
+            Student* a;
+            Student* b = NULL;
+            do {
+                swapped = 0;
+                a = classHead;
+                while (a->next != b){
+                    if (a->total_score < a->next->total_score) {
+                        // 交换两个节点的数据
+                        char tempId[MAX_ID_LEN], tempPwd[PASSWORD_LEN], tempName[MAX_NAME_LEN], tempClass[MAX_CLASS_LEN];
+                        int tempAge;
+                        char tempSex;
+                        int tempChinese, tempMath, tempEnglish, tempPhysics, tempChemistry, tempBiology;
+                        float tempTotal;
+
+                        strcpy(tempId, a->id); strcpy(a->id, a->next->id); strcpy(a->next->id, tempId);
+                        strcpy(tempPwd, a->password); strcpy(a->password, a->next->password); strcpy(a->next->password, tempPwd);
+                        strcpy(tempName, a->name); strcpy(a->name, a->next->name); strcpy(a->next->name, tempName);
+                        strcpy(tempClass, a->classname); strcpy(a->classname, a->next->classname); strcpy(a->next->classname, tempClass);
+                        tempAge = a->age; a->age = a->next->age; a->next->age = tempAge;
+                        tempSex = a->sex; a->sex = a->next->sex; a->next->sex = tempSex;
+
+                        tempChinese = a->chinese; a->chinese = a->next->chinese; a->next->chinese = tempChinese;
+                        tempMath = a->math; a->math = a->next->math; a->next->math = tempMath;
+                        tempEnglish = a->english; a->english = a->next->english; a->next->english = tempEnglish;
+                        tempPhysics = a->physics; a->physics = a->next->physics; a->next->physics = tempPhysics;
+                        tempChemistry = a->chemistry; a->chemistry = a->next->chemistry; a->next->chemistry = tempChemistry;
+                        tempBiology = a->biology; a->biology = a->next->biology; a->next->biology = tempBiology;
+                        tempTotal = a->total_score; a->total_score = a->next->total_score; a->next->total_score = tempTotal;
+
+                        swapped = 1;
+                    }
+                    a = a->next;
+                }
+                b = a;
+            } while (swapped);
+
+            // 3. 更新当前班级学生的排名（仅在本班内排名）
+            int rank = 1;
+            Student* classTemp = classHead;
+            while (classTemp != NULL) {
+                // 找到原链表中对应的学生，更新排名
+                Student* origin = stuListHead;
+                while (origin != NULL) {
+                    if (strcmp(origin->id, classTemp->id) == 0) {
+                        origin->rank = rank;
+                        break;
+                    }
+                    origin = origin->next;
+                }
+                rank++;
+                classTemp = classTemp->next;
+            }
+
+            // 释放临时班级链表内存
+            classTemp = classHead;
+            while (classTemp != NULL) {
+                Student* next = classTemp->next;
+                free(classTemp);
+                classTemp = next;
+            }
+        }
+
+        // 跳到下一个不同的班级（避免重复处理）
+        while (temp != NULL && strcmp(temp->classname, currentClass) == 0) {
+            temp = temp->next;
+        }
+    }
+}
+
+// 查询本班成绩
+void queryClassScore() {
+    if (stuListHead == NULL) {
+        printf("暂无学生成绩数据！\n");
+        return;
+    }
+    sortStudentByTotalScoreByClass();
+    printf("\n========================= 本班（%s）成绩排名 ========================\n", loginStudent.classname);
+    printf("排名\t学号\t姓名\t语文\t数学\t英语\t物理\t化学\t生物\t总分\n");
+    printf("==============================================================================\n");
+
+    Student* temp = stuListHead;
+    int hasClassData = 0;
+    while (temp != NULL) {
+        if (strcmp(temp->classname, loginStudent.classname) == 0) {
+            hasClassData = 1;
+            printf("%d\t%s\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%.1f\n",
+                temp->rank, temp->id, temp->name,
+                temp->chinese, temp->math, temp->english,
+                temp->physics, temp->chemistry, temp->biology,
+                temp->total_score);
+        }
+        temp = temp->next;
+    }
+    if (!hasClassData) {
+        printf("本班暂无成绩数据！\n");
+    }
+}
+
+// 成绩分析
+void analyzeMyScore() {
+    Student* myScore = NULL;
+    Student* temp = stuListHead;
+    while (temp != NULL) {
+        if (strcmp(temp->id, loginStudent.id) == 0) {
+            myScore = temp;
+            break;
+        }
+        temp = temp->next;
+    }
+    if (myScore == NULL) {
+        printf("暂无你的成绩数据，无法分析！\n");
+        return;
+    }
+    // 统计本班数据
+    temp = stuListHead;
+    int classCount = 0;
+    int classChinese = 0, classMath = 0, classEnglish = 0;
+    int classPhysics = 0, classChemistry = 0, classBiology = 0;
+    float classTotal = 0;
+    while (temp != NULL) {
+        if (strcmp(temp->classname, loginStudent.classname) == 0) {
+            classCount++;
+            classChinese += temp->chinese;
+            classMath += temp->math;
+            classEnglish += temp->english;
+            classPhysics += temp->physics;
+            classChemistry += temp->chemistry;
+            classBiology += temp->biology;
+            classTotal += temp->total_score;
+        }
+        temp = temp->next;
+    }
+    if (classCount == 0) {
+        printf("本班暂无成绩数据，无法分析！\n");
+        return;
+    }
+    // 计算平均分
+    float avgChinese = (float)classChinese / classCount;
+    float avgMath = (float)classMath / classCount;
+    float avgEnglish = (float)classEnglish / classCount;
+    float avgPhysics = (float)classPhysics / classCount;
+    float avgChemistry = (float)classChemistry / classCount;
+    float avgBiology = (float)classBiology / classCount;
+    float avgTotal = classTotal / classCount;
+    // 展示分析报告
+    printf("\n====================== 成绩分析报告 ======================\n");
+    printf("1. 基础信息：\n");
+    printf("   姓名：%s\t班级：%s\t本班总人数：%d\n", myScore->name, myScore->classname, classCount);
+    printf("   总分排名：第%d名\t总分：%.1f\t班级平均分：%.1f\n", myScore->rank, myScore->total_score, avgTotal);
+    printf("\n2. 各科成绩与班级平均分对比：\n");
+    printf("   科目\t你的成绩\t班级平均分\t差距（高/低）\n");
+    printf("   语文\t%d\t\t%.1f\t\t%.1f\n", myScore->chinese, avgChinese, myScore->chinese - avgChinese);
+    printf("   数学\t%d\t\t%.1f\t\t%.1f\n", myScore->math, avgMath, myScore->math - avgMath);
+    printf("   英语\t%d\t\t%.1f\t\t%.1f\n", myScore->english, avgEnglish, myScore->english - avgEnglish);
+    printf("   物理\t%d\t\t%.1f\t\t%.1f\n", myScore->physics, avgPhysics, myScore->physics - avgPhysics);
+    printf("   化学\t%d\t\t%.1f\t\t%.1f\n", myScore->chemistry, avgChemistry, myScore->chemistry - avgChemistry);
+    printf("   生物\t%d\t\t%.1f\t\t%.1f\n", myScore->biology, avgBiology, myScore->biology - avgBiology);
+    // 薄弱科目
+    printf("\n3. 薄弱科目建议（低于班级平均分）：\n");
+    int hasWeak = 0;
+    if (myScore->chinese < avgChinese) {
+        printf("   语文（低于平均分%.1f分）\n", avgChinese - myScore->chinese);
+        hasWeak = 1;
+    }
+    if (myScore->math < avgMath) {
+        printf("   数学（低于平均分%.1f分）\n", avgMath - myScore->math);
+        hasWeak = 1;
+    }
+    if (myScore->english < avgEnglish) {
+        printf("   英语（低于平均分%.1f分）\n", avgEnglish - myScore->english);
+        hasWeak = 1;
+    }
+    if (myScore->physics < avgPhysics) {
+        printf("   物理（低于平均分%.1f分）\n", avgPhysics - myScore->physics);
+        hasWeak = 1;
+    }
+    if (myScore->chemistry < avgChemistry) {
+        printf("   化学（低于平均分%.1f分）\n", avgChemistry - myScore->chemistry);
+        hasWeak = 1;
+    }
+    if (myScore->biology < avgBiology) {
+        printf("   生物（低于平均分%.1f分）\n", avgBiology - myScore->biology);
+        hasWeak = 1;
+    }
+    if (!hasWeak) {
+        printf("   恭喜！你的所有科目均高于班级平均分！\n");
+    }
+}
+
+// 从文件加载所有学生数据到链表（核心修复函数）
+void loadStudentsToLinkList() {
+    // 1. 先清空原有链表，避免重复加载
+    Student* temp = stuListHead;
+    while (temp != NULL) {
+        Student* next = temp->next;
+        free(temp);
+        temp = next;
+    }
+    stuListHead = NULL;
+
+    // 2. 打开学生数据文件
+    FILE* fp = fopen(STUDENT_FILE, "rb");
+    if (fp == NULL) {
+        // 文件不存在时创建空文件，避免后续操作报错
+        fp = fopen(STUDENT_FILE, "wb");
+        if (fp == NULL) {
+            printf("学生数据文件创建失败！\n");
+            return;
+        }
+        fclose(fp);
+        return;
+    }
+
+    // 3. 循环读取文件中的学生数据，构建链表
+    Student* tail = NULL; // 链表尾指针（用于尾插法）
+    Student stuBuf;       // 临时存储读取的学生数据
+
+    while (fread(&stuBuf, sizeof(Student), 1, fp) == 1){
+        // 为每个学生节点分配内存
+        Student* newNode = (Student*)malloc(sizeof(Student));
+        if (newNode == NULL) {
+            printf("内存分配失败！\n");
+            break;
+        }
+
+        // 复制文件中的学生数据到新节点
+        memcpy(newNode, &stuBuf, sizeof(Student));
+        newNode->next = NULL; // 尾节点next置空
+
+        // 尾插法添加到链表
+        if (stuListHead == NULL) {
+            stuListHead = newNode; // 链表为空时，头节点=新节点
+            tail = newNode;
+        }
+        else {
+            tail->next = newNode; // 链表非空时，尾节点指向新节点
+            tail = newNode;
+        }
+    }
+
+    fclose(fp);
+    // 加载完成后自动排序，保证排名最新
+    sortStudentByTotalScoreByClass();
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // 教师账号文件路径
