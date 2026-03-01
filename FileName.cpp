@@ -1,17 +1,18 @@
 ﻿//学生
-//王 12345 123456
-//李 111111 111111
+//王 123456 123456
 //老师
-//张 123456 123456
+//杨 123456 123456
 //管理员
 //123456 123456
 #define _CRT_SECURE_NO_WARNINGS
 #include<iostream>
 #include<stdlib.h>
-#include<string>
+#include<string.h>
 #include<math.h>
 #include <windows.h>
 #include <conio.h>
+#include <ctype.h>   // isdigit()需要
+#include<string>
 
 using namespace std;
 
@@ -30,21 +31,26 @@ char loginTeacherClass[MAX_CLASS_LEN] = { 0 }; // 当前登录教师管理的班
 void loadStudentsToLinkList();
 //////////////////////////////////////////////////////////////////////////////////////
 //隐藏式输入密码，输入结果存入pwd，max_len为密码最大长度
-void inputPassword(char* pwd, int max_len) {
+void inputPassword(char* pwd, int max_len)
+{
     int i = 0;
     char ch;
     memset(pwd, 0, max_len);  // 清空密码数组
     printf("请输入密码：");
-    while (1) {
+    while (1)
+    {
         ch = _getch();  // 无回显获取按键
-        if (ch == '\r' || ch == '\n') {  // 按回车结束输入
+        if (ch == '\r' || ch == '\n')
+        {  // 按回车结束输入
             break;
         }
-        else if (ch == '\b' && i > 0) {  // 按退格键删除
+        else if (ch == '\b' && i > 0)
+        {  // 按退格键删除
             printf("\b \b");  // 删掉屏幕上的*
             i--;
         }
-        else if (i < max_len - 1) {  // 正常输入字符
+        else if (i < max_len - 1)
+        {  // 正常输入字符
             pwd[i++] = ch;
             printf("%c", PWD_MASK);    // 显示*
         }
@@ -52,13 +58,15 @@ void inputPassword(char* pwd, int max_len) {
     printf("\n");
 }
 
-// 清空输入缓冲区
+// 清空输入缓冲区（你原有代码中缺失，需补充）
 void clearInputBuffer() {
     while (getchar() != '\n'); // 读取并丢弃缓冲区所有字符，直到回车
 }
 // 判断字符串是否为数字（用于学号/成绩验证）
-int isNumber(char* str) {
-    for (int i = 0; str[i] != '\0'; i++) {
+int isNumber(char* str)
+{
+    for (int i = 0; str[i] != '\0'; i++)
+    {
         if (!isdigit(str[i]))
             return 0;
     }
@@ -66,7 +74,8 @@ int isNumber(char* str) {
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct Student {
+typedef struct Student
+{
     char id[MAX_ID_LEN];           //学号
     char password[PASSWORD_LEN];   //密码
     char name[MAX_NAME_LEN];       //姓名
@@ -85,23 +94,28 @@ typedef struct Student {
 };
 Student loginStudent;
 // 计算总分
-void calculateTotalScore(Student* stu) {
+void calculateTotalScore(Student* stu)
+{
     stu->total_score = (float)(stu->chinese + stu->math + stu->english +
         stu->physics + stu->chemistry + stu->biology);
 }
 
 // 学生登录验证：返回1表示登录成功，0失败，-1文件错误
-int studentLogin(char* inputId, char* inputPwd) {
+int studentLogin(char* inputId, char* inputPwd)
+{
     FILE* fp = fopen(STUDENT_FILE, "rb");
-    if (fp == NULL) {
+    if (fp == NULL)
+    {
         printf("账号文件不存在或打开失败！\n");
         return -1;
     }
     Student stu;
     // 循环读取文件中的每个学生信息
-    while (fread(&stu, sizeof(Student), 1, fp) == 1) {
+    while (fread(&stu, sizeof(Student), 1, fp) == 1)
+    {
         // 比对学号和密码
-        if (strcmp(stu.id, inputId) == 0 && strcmp(stu.password, inputPwd) == 0) {
+        if (strcmp(stu.id, inputId) == 0 && strcmp(stu.password, inputPwd) == 0)
+        {
             // 新增：将登录学生信息赋值给全局变量
             memcpy(&loginStudent, &stu, sizeof(Student));
             // 新增：加载学生链表（确保成绩数据可用）
@@ -117,10 +131,12 @@ int studentLogin(char* inputId, char* inputPwd) {
 }
 
 // 学生账号注册：返回1成功，0失败（账号已存在），-1文件错误
-int studentRegister() {
+int studentRegister()
+{
     Student newStu;
     FILE* fp = fopen(STUDENT_FILE, "ab+");  // 追加+二进制模式
-    if (fp == NULL) {
+    if (fp == NULL)
+    {
         printf("文件打开失败！\n");
         return -1;
     }
@@ -130,8 +146,10 @@ int studentRegister() {
     // 先检查账号是否重复
     Student temp;
     fseek(fp, 0, SEEK_SET);  // 回到文件开头
-    while (fread(&temp, sizeof(Student), 1, fp) == 1) {
-        if (strcmp(temp.id, newStu.id) == 0) {
+    while (fread(&temp, sizeof(Student), 1, fp) == 1)
+    {
+        if (strcmp(temp.id, newStu.id) == 0)
+        {
             fclose(fp);
             printf("该学号已注册！\n");
             return 0;
@@ -161,7 +179,8 @@ int studentRegister() {
     inputPassword(pwd1, 20);
     printf("请再次输入密码：");
     inputPassword(pwd2, 20);
-    if (strcmp(pwd1, pwd2) != 0) {
+    if (strcmp(pwd1, pwd2) != 0)
+    {
         fclose(fp);
         printf("两次密码输入不一致！\n");
         return 0;
@@ -176,25 +195,30 @@ int studentRegister() {
 }
 
 // 修改学生密码：输入原账号和原密码，验证通过后修改
-int changeStudentPwd(char* inputId, char* oldPwd) {
+int changeStudentPwd(char* inputId, char* oldPwd)
+{
     FILE* fp;
     errno_t err = fopen_s(&fp, STUDENT_FILE, "rb+");
-    if (err != 0 || fp == NULL) {
+    if (err != 0 || fp == NULL)
+    {
         printf("文件打开失败！\n");
         return -1;
     }
 
     Student stu;
     int found = 0;
-    while (fread(&stu, sizeof(Student), 1, fp) == 1) {
-        if (strcmp(stu.id, inputId) == 0 && strcmp(stu.password, oldPwd) == 0){
+    while (fread(&stu, sizeof(Student), 1, fp) == 1)
+    {
+        if (strcmp(stu.id, inputId) == 0 && strcmp(stu.password, oldPwd) == 0)
+        {
             found = 1;
             char newPwd1[20], newPwd2[20];
             printf("请输入新密码：");
             inputPassword(newPwd1, 20);
             printf("请再次输入新密码：");
             inputPassword(newPwd2, 20);
-            if (strcmp(newPwd1, newPwd2) != 0) {
+            if (strcmp(newPwd1, newPwd2) != 0)
+            {
                 fclose(fp);
                 printf("两次密码不一致！\n");
                 return 0;
@@ -217,10 +241,13 @@ int changeStudentPwd(char* inputId, char* oldPwd) {
 Student* stuListHead = NULL;    // 学生链表头节点
 
 //查询个人成绩
-void queryMyScore(){
+void queryMyScore()
+{
     Student* temp = stuListHead;
-    while (temp != NULL) {
-        if (strcmp(temp->id, loginStudent.id) == 0) {
+    while (temp != NULL)
+    {
+        if (strcmp(temp->id, loginStudent.id) == 0)
+        {
             printf("\n================== 个人成绩详情 =================\n");
             printf("学号：%s\t姓名：%s\t班级：%s\n", temp->id, temp->name, temp->classname);
             printf("年龄：%d\t性别：%c\n", temp->age, temp->sex);
@@ -237,7 +264,8 @@ void queryMyScore(){
 }
 
 // 按班级分组计算排名（每个班级独立排名）
-void sortStudentByTotalScoreByClass() {
+void sortStudentByTotalScoreByClass()
+{
     if (stuListHead == NULL) return;
 
     // 1. 先按班级分组，存储每个班级的学生链表
@@ -245,14 +273,17 @@ void sortStudentByTotalScoreByClass() {
     Student* classHead = NULL; // 临时存储当前班级的学生
 
     Student* temp = stuListHead;
-    while (temp != NULL) {
+    while (temp != NULL)
+    {
         strcpy(currentClass, temp->classname);
         // 提取当前班级的所有学生到classHead
         classHead = NULL;
         Student* classTail = NULL;
         Student* p = stuListHead;
-        while (p != NULL) {
-            if (strcmp(p->classname, currentClass) == 0) {
+        while (p != NULL)
+        {
+            if (strcmp(p->classname, currentClass) == 0)
+            {
                 Student* newNode = (Student*)malloc(sizeof(Student));
                 memcpy(newNode, p, sizeof(Student));
                 newNode->next = NULL;
@@ -269,15 +300,18 @@ void sortStudentByTotalScoreByClass() {
         }
 
         // 2. 对当前班级的学生排序（降序）
-        if (classHead != NULL && classHead->next != NULL){
+        if (classHead != NULL && classHead->next != NULL)
+        {
             int swapped;
             Student* a;
             Student* b = NULL;
             do {
                 swapped = 0;
                 a = classHead;
-                while (a->next != b){
-                    if (a->total_score < a->next->total_score) {
+                while (a->next != b)
+                {
+                    if (a->total_score < a->next->total_score)
+                    {
                         // 交换两个节点的数据
                         char tempId[MAX_ID_LEN], tempPwd[PASSWORD_LEN], tempName[MAX_NAME_LEN], tempClass[MAX_CLASS_LEN];
                         int tempAge;
@@ -310,11 +344,14 @@ void sortStudentByTotalScoreByClass() {
             // 3. 更新当前班级学生的排名（仅在本班内排名）
             int rank = 1;
             Student* classTemp = classHead;
-            while (classTemp != NULL) {
+            while (classTemp != NULL)
+            {
                 // 找到原链表中对应的学生，更新排名
                 Student* origin = stuListHead;
-                while (origin != NULL) {
-                    if (strcmp(origin->id, classTemp->id) == 0) {
+                while (origin != NULL)
+                {
+                    if (strcmp(origin->id, classTemp->id) == 0)
+                    {
                         origin->rank = rank;
                         break;
                     }
@@ -326,7 +363,8 @@ void sortStudentByTotalScoreByClass() {
 
             // 释放临时班级链表内存
             classTemp = classHead;
-            while (classTemp != NULL) {
+            while (classTemp != NULL)
+            {
                 Student* next = classTemp->next;
                 free(classTemp);
                 classTemp = next;
@@ -334,27 +372,32 @@ void sortStudentByTotalScoreByClass() {
         }
 
         // 跳到下一个不同的班级（避免重复处理）
-        while (temp != NULL && strcmp(temp->classname, currentClass) == 0) {
+        while (temp != NULL && strcmp(temp->classname, currentClass) == 0)
+        {
             temp = temp->next;
         }
     }
 }
 
 // 查询本班成绩
-void queryClassScore() {
-    if (stuListHead == NULL) {
+void queryClassScore(const char* className)
+{
+    if (stuListHead == NULL)
+    {
         printf("暂无学生成绩数据！\n");
         return;
     }
     sortStudentByTotalScoreByClass();
-    printf("\n========================= 本班（%s）成绩排名 ========================\n", loginStudent.classname);
+    printf("\n========================= 本班（%s）成绩排名 ========================\n", className);
     printf("排名\t学号\t姓名\t语文\t数学\t英语\t物理\t化学\t生物\t总分\n");
     printf("==============================================================================\n");
 
     Student* temp = stuListHead;
     int hasClassData = 0;
-    while (temp != NULL) {
-        if (strcmp(temp->classname, loginStudent.classname) == 0) {
+    while (temp != NULL)
+    {
+        if (strcmp(temp->classname, className) == 0)
+        {
             hasClassData = 1;
             printf("%d\t%s\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%.1f\n",
                 temp->rank, temp->id, temp->name,
@@ -364,23 +407,28 @@ void queryClassScore() {
         }
         temp = temp->next;
     }
-    if (!hasClassData) {
+    if (!hasClassData)
+    {
         printf("本班暂无成绩数据！\n");
     }
 }
 
 // 成绩分析
-void analyzeMyScore() {
+void analyzeMyScore()
+{
     Student* myScore = NULL;
     Student* temp = stuListHead;
-    while (temp != NULL) {
-        if (strcmp(temp->id, loginStudent.id) == 0) {
+    while (temp != NULL)
+    {
+        if (strcmp(temp->id, loginStudent.id) == 0)
+        {
             myScore = temp;
             break;
         }
         temp = temp->next;
     }
-    if (myScore == NULL) {
+    if (myScore == NULL)
+    {
         printf("暂无你的成绩数据，无法分析！\n");
         return;
     }
@@ -390,8 +438,10 @@ void analyzeMyScore() {
     int classChinese = 0, classMath = 0, classEnglish = 0;
     int classPhysics = 0, classChemistry = 0, classBiology = 0;
     float classTotal = 0;
-    while (temp != NULL) {
-        if (strcmp(temp->classname, loginStudent.classname) == 0) {
+    while (temp != NULL)
+    {
+        if (strcmp(temp->classname, loginStudent.classname) == 0)
+        {
             classCount++;
             classChinese += temp->chinese;
             classMath += temp->math;
@@ -403,7 +453,8 @@ void analyzeMyScore() {
         }
         temp = temp->next;
     }
-    if (classCount == 0) {
+    if (classCount == 0)
+    {
         printf("本班暂无成绩数据，无法分析！\n");
         return;
     }
@@ -431,40 +482,49 @@ void analyzeMyScore() {
     // 薄弱科目
     printf("\n3. 薄弱科目建议（低于班级平均分）：\n");
     int hasWeak = 0;
-    if (myScore->chinese < avgChinese) {
+    if (myScore->chinese < avgChinese)
+    {
         printf("   语文（低于平均分%.1f分）\n", avgChinese - myScore->chinese);
         hasWeak = 1;
     }
-    if (myScore->math < avgMath) {
+    if (myScore->math < avgMath)
+    {
         printf("   数学（低于平均分%.1f分）\n", avgMath - myScore->math);
         hasWeak = 1;
     }
-    if (myScore->english < avgEnglish) {
+    if (myScore->english < avgEnglish)
+    {
         printf("   英语（低于平均分%.1f分）\n", avgEnglish - myScore->english);
         hasWeak = 1;
     }
-    if (myScore->physics < avgPhysics) {
+    if (myScore->physics < avgPhysics)
+    {
         printf("   物理（低于平均分%.1f分）\n", avgPhysics - myScore->physics);
         hasWeak = 1;
     }
-    if (myScore->chemistry < avgChemistry) {
+    if (myScore->chemistry < avgChemistry)
+    {
         printf("   化学（低于平均分%.1f分）\n", avgChemistry - myScore->chemistry);
         hasWeak = 1;
     }
-    if (myScore->biology < avgBiology) {
+    if (myScore->biology < avgBiology)
+    {
         printf("   生物（低于平均分%.1f分）\n", avgBiology - myScore->biology);
         hasWeak = 1;
     }
-    if (!hasWeak) {
+    if (!hasWeak)
+    {
         printf("   恭喜！你的所有科目均高于班级平均分！\n");
     }
 }
 
 // 从文件加载所有学生数据到链表（核心修复函数）
-void loadStudentsToLinkList() {
+void loadStudentsToLinkList()
+{
     // 1. 先清空原有链表，避免重复加载
     Student* temp = stuListHead;
-    while (temp != NULL) {
+    while (temp != NULL)
+    {
         Student* next = temp->next;
         free(temp);
         temp = next;
@@ -473,10 +533,12 @@ void loadStudentsToLinkList() {
 
     // 2. 打开学生数据文件
     FILE* fp = fopen(STUDENT_FILE, "rb");
-    if (fp == NULL) {
+    if (fp == NULL)
+    {
         // 文件不存在时创建空文件，避免后续操作报错
         fp = fopen(STUDENT_FILE, "wb");
-        if (fp == NULL) {
+        if (fp == NULL)
+        {
             printf("学生数据文件创建失败！\n");
             return;
         }
@@ -488,10 +550,12 @@ void loadStudentsToLinkList() {
     Student* tail = NULL; // 链表尾指针（用于尾插法）
     Student stuBuf;       // 临时存储读取的学生数据
 
-    while (fread(&stuBuf, sizeof(Student), 1, fp) == 1){
+    while (fread(&stuBuf, sizeof(Student), 1, fp) == 1)
+    {
         // 为每个学生节点分配内存
         Student* newNode = (Student*)malloc(sizeof(Student));
-        if (newNode == NULL) {
+        if (newNode == NULL)
+        {
             printf("内存分配失败！\n");
             break;
         }
@@ -501,11 +565,13 @@ void loadStudentsToLinkList() {
         newNode->next = NULL; // 尾节点next置空
 
         // 尾插法添加到链表
-        if (stuListHead == NULL) {
+        if (stuListHead == NULL)
+        {
             stuListHead = newNode; // 链表为空时，头节点=新节点
             tail = newNode;
         }
-        else {
+        else
+        {
             tail->next = newNode; // 链表非空时，尾节点指向新节点
             tail = newNode;
         }
@@ -516,10 +582,10 @@ void loadStudentsToLinkList() {
     sortStudentByTotalScoreByClass();
 }
 
-///////////////////////////////////////////////////////////////////////////////////////
-// 教师账号文件路径
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct Teacher{
+typedef struct Teacher
+{
     char id[MAX_ID_LEN];           //工号
     char password[PASSWORD_LEN];   //密码
     char name[MAX_NAME_LEN];       //姓名
@@ -529,18 +595,22 @@ typedef struct Teacher{
 };
 
 // 教师登录验证：返回1成功，0失败，-1文件错误
-int teacherLogin(char* inputId, char* inputPwd){
+int teacherLogin(char* inputId, char* inputPwd)
+{
     FILE* fp;
     errno_t err = fopen_s(&fp, TEACHER_FILE, "rb");
-    if (err != 0 || fp == NULL){
+    if (err != 0 || fp == NULL)
+    {
         printf("教师账号文件不存在或打开失败！\n");
         return -1;
     }
     Teacher tea;
     // 循环读取每个教师信息
-    while (fread(&tea, sizeof(Teacher), 1, fp) == 1){
+    while (fread(&tea, sizeof(Teacher), 1, fp) == 1)
+    {
         // 比对工号和密码
-        if (strcmp(tea.id, inputId) == 0 && strcmp(tea.password, inputPwd) == 0){
+        if (strcmp(tea.id, inputId) == 0 && strcmp(tea.password, inputPwd) == 0)
+        {
             strcpy(loginTeacherId, tea.id);       // 教师工号
             strcpy(loginTeacherClass, tea.classname);
             // 把教师工号存入全局变量 loginTeacherId
@@ -559,11 +629,13 @@ int teacherLogin(char* inputId, char* inputPwd){
 }
 
 // 教师账号注册：返回1成功，0失败（账号已存在），-1文件错误
-int teacherRegister(){
+int teacherRegister()
+{
     Teacher newTea;
     FILE* fp;
     errno_t err = fopen_s(&fp, TEACHER_FILE, "ab+");  // 追加+二进制模式
-    if (err != 0 || fp == NULL){
+    if (err != 0 || fp == NULL)
+    {
         printf("文件打开失败！\n");
         return -1;
     }
@@ -573,8 +645,10 @@ int teacherRegister(){
     scanf("%s", newTea.id);
     Teacher temp;
     fseek(fp, 0, SEEK_SET);  // 回到文件开头
-    while (fread(&temp, sizeof(Teacher), 1, fp) == 1){
-        if (strcmp(temp.id, newTea.id) == 0){
+    while (fread(&temp, sizeof(Teacher), 1, fp) == 1)
+    {
+        if (strcmp(temp.id, newTea.id) == 0)
+        {
             fclose(fp);
             printf("该教师工号已注册！\n");
             return 0;
@@ -592,7 +666,8 @@ int teacherRegister(){
     inputPassword(pwd1, 20);
     printf("请再次输入密码：");
     inputPassword(pwd2, 20);
-    if (strcmp(pwd1, pwd2) != 0){
+    if (strcmp(pwd1, pwd2) != 0)
+    {
         fclose(fp);
         printf("两次密码输入不一致！\n");
         return 0;
@@ -608,17 +683,21 @@ int teacherRegister(){
 }
 
 // 修改教师密码：输入原工号和原密码，验证通过后修改
-int changeTeacherPwd(char* inputId, char* oldPwd){
+int changeTeacherPwd(char* inputId, char* oldPwd)
+{
     FILE* fp;
     errno_t err = fopen_s(&fp, TEACHER_FILE, "rb+");  // 读写模式
-    if (err != 0 || fp == NULL){
+    if (err != 0 || fp == NULL)
+    {
         printf("文件打开失败！\n");
         return -1;
     }
     Teacher tea;
     int found = 0;
-    while (fread(&tea, sizeof(Teacher), 1, fp) == 1){
-        if (strcmp(tea.id, inputId) == 0 && strcmp(tea.password, oldPwd) == 0){
+    while (fread(&tea, sizeof(Teacher), 1, fp) == 1)
+    {
+        if (strcmp(tea.id, inputId) == 0 && strcmp(tea.password, oldPwd) == 0)
+        {
             found = 1;
             // 输入新密码
             char newPwd1[20], newPwd2[20];
@@ -626,7 +705,8 @@ int changeTeacherPwd(char* inputId, char* oldPwd){
             inputPassword(newPwd1, 20);
             printf("请再次输入新密码：");
             inputPassword(newPwd2, 20);
-            if (strcmp(newPwd1, newPwd2) != 0){
+            if (strcmp(newPwd1, newPwd2) != 0)
+            {
                 fclose(fp);
                 printf("两次密码不一致！\n");
                 return 0;
@@ -654,7 +734,8 @@ void teacherAddStudent()
 {
     Student newStu;
     FILE* fp = fopen(STUDENT_FILE, "ab+");
-    if (fp == NULL){
+    if (fp == NULL)
+    {
         printf("文件打开失败！\n");
         return;
     }
@@ -666,8 +747,10 @@ void teacherAddStudent()
     // 查重（全局查重，避免学号重复）
     Student temp;
     fseek(fp, 0, SEEK_SET);
-    while (fread(&temp, sizeof(Student), 1, fp) == 1){
-        if (strcmp(temp.id, newStu.id) == 0){
+    while (fread(&temp, sizeof(Student), 1, fp) == 1)
+    {
+        if (strcmp(temp.id, newStu.id) == 0)
+        {
             fclose(fp);
             printf("该学号已存在！无法新增\n");
             return;
@@ -697,14 +780,16 @@ void teacherAddStudent()
     // 4. 设置初始密码（默认学号后6位，不足补0）
     char initPwd[PASSWORD_LEN] = { 0 };
     int idLen = strlen(newStu.id);
-    if (idLen >= 6){
+    if (idLen >= 6)
+    {
         strncpy(initPwd, newStu.id + idLen - 6, 6);
     }
     else
     {
         strcpy(initPwd, newStu.id);
         // 不足6位补0
-        for (int i = idLen; i < 6; i++){
+        for (int i = idLen; i < 6; i++)
+        {
             initPwd[i] = '0';
         }
     }
@@ -720,7 +805,8 @@ void teacherAddStudent()
     printf("初始密码：%s（建议提醒学生及时修改）\n", initPwd);
 }
 // ===================== 教师-删除学生信息 =====================
-void teacherDeleteStudent(){
+void teacherDeleteStudent()
+{
     char delId[MAX_ID_LEN];
     printf("请输入要删除的学生学号：");
     scanf("%s", delId);
@@ -728,15 +814,18 @@ void teacherDeleteStudent(){
     int found = 0;
     Student* prev = NULL;
     Student* curr = stuListHead;
-    while (curr != NULL){
-        if (strcmp(curr->id, delId) == 0 && strcmp(curr->classname, loginTeacherClass) == 0){
+    while (curr != NULL)
+    {
+        if (strcmp(curr->id, delId) == 0 && strcmp(curr->classname, loginTeacherClass) == 0)
+        {
             found = 1;
             break;
         }
         prev = curr;
         curr = curr->next;
     }
-    if (!found){
+    if (!found)
+    {
         printf("未找到该学生，或该学生不属于你管理的班级！\n");
         return;
     }
@@ -744,26 +833,31 @@ void teacherDeleteStudent(){
     printf("确认删除 %s（学号：%s）的信息吗？(Y/N)：", curr->name, curr->id);
     char confirm;
     scanf(" %c", &confirm);
-    if (confirm != 'Y' && confirm != 'y'){
+    if (confirm != 'Y' && confirm != 'y')
+    {
         printf("取消删除！\n");
         return;
     }
     // 3. 从链表删除节点
-    if (prev == NULL) {
+    if (prev == NULL) // 删除头节点
+    {
         stuListHead = curr->next;
     }
-    else{
+    else
+    {
         prev->next = curr->next;
     }
     free(curr);
     // 4. 从文件删除（重新写入所有非删除的学生）
     FILE* fp = fopen(STUDENT_FILE, "wb");
-    if (fp == NULL){
+    if (fp == NULL)
+    {
         printf("文件打开失败！\n");
         return;
     }
     Student* temp = stuListHead;
-    while (temp != NULL){
+    while (temp != NULL)
+    {
         fwrite(temp, sizeof(Student), 1, fp);
         temp = temp->next;
     }
@@ -772,7 +866,8 @@ void teacherDeleteStudent(){
 }
 
 // ===================== 教师-查询学生信息 =====================
-void teacherQueryStudent(){
+void teacherQueryStudent()
+{
     printf("请选择查询方式：\n");
     printf("1. 按学号查询\n");
     printf("2. 按姓名查询\n");
@@ -782,13 +877,16 @@ void teacherQueryStudent(){
     clearInputBuffer();
     Student* temp = stuListHead;
     int found = 0;
-    if (op == 1) {
+    if (op == 1) // 按学号查询
+    {
         char queryId[MAX_ID_LEN];
         printf("请输入要查询的学生学号：");
         scanf("%s", queryId);
         clearInputBuffer();
-        while (temp != NULL){
-            if (strcmp(temp->id, queryId) == 0 && strcmp(temp->classname, loginTeacherClass) == 0){
+        while (temp != NULL)
+        {
+            if (strcmp(temp->id, queryId) == 0 && strcmp(temp->classname, loginTeacherClass) == 0)
+            {
                 found = 1;
                 printf("\n===== 学生信息 =====\n");
                 printf("学号：%s\t姓名：%s\t班级：%s\n", temp->id, temp->name, temp->classname);
@@ -803,14 +901,17 @@ void teacherQueryStudent(){
             temp = temp->next;
         }
     }
-    else if (op == 2){
+    else if (op == 2) // 按姓名查询
+    {
         char queryName[MAX_NAME_LEN];
         printf("请输入要查询的学生姓名：");
         scanf("%[^\n]", queryName); // 支持空格
         clearInputBuffer();
         printf("\n===== 查询结果 =====\n");
-        while (temp != NULL){
-            if (strcmp(temp->name, queryName) == 0 && strcmp(temp->classname, loginTeacherClass) == 0){
+        while (temp != NULL)
+        {
+            if (strcmp(temp->name, queryName) == 0 && strcmp(temp->classname, loginTeacherClass) == 0)
+            {
                 found = 1;
                 printf("学号：%s\t姓名：%s\t性别：%c\t年龄：%d\t总分：%.1f\t排名：%d\n",
                     temp->id, temp->name, temp->sex, temp->age, temp->total_score, temp->rank);
@@ -818,25 +919,30 @@ void teacherQueryStudent(){
             temp = temp->next;
         }
     }
-    else{
+    else
+    {
         printf("输入错误！\n");
         return;
     }
-    if (!found){
+    if (!found)
+    {
         printf("未找到该学生，或该学生不属于你管理的班级！\n");
     }
 }
 
 // ===================== 教师-单个录入/修改学生成绩 =====================
-void teacherModifyStudentScore(){
+void teacherModifyStudentScore()
+{
     char modId[MAX_ID_LEN];
     printf("请输入要录入/修改成绩的学生学号：");
     scanf("%s", modId);
     clearInputBuffer();
     // 1. 查找本班学生
     Student* temp = stuListHead;
-    while (temp != NULL){
-        if (strcmp(temp->id, modId) == 0 && strcmp(temp->classname, loginTeacherClass) == 0){
+    while (temp != NULL)
+    {
+        if (strcmp(temp->id, modId) == 0 && strcmp(temp->classname, loginTeacherClass) == 0)
+        {
             // 2. 显示当前成绩（若为0提示"未录入"）
             printf("\n【%s（学号：%s）】当前成绩：\n", temp->name, temp->id);
             printf("语文：%s\t数学：%s\t英语：%s\n",
@@ -855,7 +961,8 @@ void teacherModifyStudentScore(){
             printf("请输入语文成绩（0-100，回车保留，-1清空）：");
             scanf("%[^\n]", scoreStr);
             clearInputBuffer();
-            if (strlen(scoreStr) > 0){
+            if (strlen(scoreStr) > 0)
+            {
                 newScore = atoi(scoreStr);
                 if (newScore == -1) temp->chinese = 0;
                 else if (newScore >= 0 && newScore <= 100) temp->chinese = newScore;
@@ -865,7 +972,8 @@ void teacherModifyStudentScore(){
             printf("请输入数学成绩（0-100，回车保留，-1清空）：");
             scanf("%[^\n]", scoreStr);
             clearInputBuffer();
-            if (strlen(scoreStr) > 0){
+            if (strlen(scoreStr) > 0)
+            {
                 newScore = atoi(scoreStr);
                 if (newScore == -1) temp->math = 0;
                 else if (newScore >= 0 && newScore <= 100) temp->math = newScore;
@@ -875,7 +983,8 @@ void teacherModifyStudentScore(){
             printf("请输入英语成绩（0-100，回车保留，-1清空）：");
             scanf("%[^\n]", scoreStr);
             clearInputBuffer();
-            if (strlen(scoreStr) > 0){
+            if (strlen(scoreStr) > 0)
+            {
                 newScore = atoi(scoreStr);
                 if (newScore == -1) temp->english = 0;
                 else if (newScore >= 0 && newScore <= 100) temp->english = newScore;
@@ -885,7 +994,8 @@ void teacherModifyStudentScore(){
             printf("请输入物理成绩（0-100，回车保留，-1清空）：");
             scanf("%[^\n]", scoreStr);
             clearInputBuffer();
-            if (strlen(scoreStr) > 0){
+            if (strlen(scoreStr) > 0)
+            {
                 newScore = atoi(scoreStr);
                 if (newScore == -1) temp->physics = 0;
                 else if (newScore >= 0 && newScore <= 100) temp->physics = newScore;
@@ -895,7 +1005,8 @@ void teacherModifyStudentScore(){
             printf("请输入化学成绩（0-100，回车保留，-1清空）：");
             scanf("%[^\n]", scoreStr);
             clearInputBuffer();
-            if (strlen(scoreStr) > 0){
+            if (strlen(scoreStr) > 0)
+            {
                 newScore = atoi(scoreStr);
                 if (newScore == -1) temp->chemistry = 0;
                 else if (newScore >= 0 && newScore <= 100) temp->chemistry = newScore;
@@ -905,7 +1016,8 @@ void teacherModifyStudentScore(){
             printf("请输入生物成绩（0-100，回车保留，-1清空）：");
             scanf("%[^\n]", scoreStr);
             clearInputBuffer();
-            if (strlen(scoreStr) > 0){
+            if (strlen(scoreStr) > 0)
+            {
                 newScore = atoi(scoreStr);
                 if (newScore == -1) temp->biology = 0;
                 else if (newScore >= 0 && newScore <= 100) temp->biology = newScore;
@@ -916,10 +1028,13 @@ void teacherModifyStudentScore(){
             // 5. 更新文件中的数据
             FILE* fp;
             fopen_s(&fp, STUDENT_FILE, "rb+");
-            if (fp != NULL){
+            if (fp != NULL)
+            {
                 Student fileStu;
-                while (fread(&fileStu, sizeof(Student), 1, fp) == 1){
-                    if (strcmp(fileStu.id, modId) == 0){
+                while (fread(&fileStu, sizeof(Student), 1, fp) == 1)
+                {
+                    if (strcmp(fileStu.id, modId) == 0)
+                    {
                         fseek(fp, -(long)sizeof(Student), SEEK_CUR);
                         fwrite(temp, sizeof(Student), 1, fp);
                         break;
@@ -939,8 +1054,10 @@ void teacherModifyStudentScore(){
 }
 
 // ===================== 教师-本班成绩分析 =====================
-void teacherAnalyzeScore(){
-    if (stuListHead == NULL){
+void teacherAnalyzeScore()
+{
+    if (stuListHead == NULL)
+    {
         printf("暂无学生成绩数据！\n");
         return;
     }
@@ -961,7 +1078,8 @@ void teacherAnalyzeScore(){
     Student* temp = stuListHead;
     while (temp != NULL)
     {
-        if (strcmp(temp->classname, loginTeacherClass) == 0){
+        if (strcmp(temp->classname, loginTeacherClass) == 0)
+        {
             classCount++;
             // 语文
             chineseTotal += temp->chinese;
@@ -1000,7 +1118,8 @@ void teacherAnalyzeScore(){
         }
         temp = temp->next;
     }
-    if (classCount == 0){
+    if (classCount == 0)
+    {
         printf("本班暂无学生数据！\n");
         return;
     }
@@ -1044,14 +1163,17 @@ void teacherAnalyzeScore(){
 }
 
 // 老师端：下载所管理班级的学生信息到文件
-void teacherDownloadStudentInfo(){
+void teacherDownloadStudentInfo()
+{
     // 1. 校验登录状态（老师是否已登录）
-    if (loginTeacherClass[0] == '\0'){
+    if (loginTeacherClass[0] == '\0')
+    {
         printf("请先以老师身份登录！\n");
         return;
     }
     // 2. 校验是否有学生数据
-    if (stuListHead == NULL){
+    if (stuListHead == NULL)
+    {
         printf("暂无学生数据可下载！\n");
         return;
     }
@@ -1066,7 +1188,8 @@ void teacherDownloadStudentInfo(){
         t->tm_hour, t->tm_min, t->tm_sec);
     // 4. 打开文件（写入模式，不存在则创建）
     FILE* fp = fopen(filename, "w");
-    if (fp == NULL){
+    if (fp == NULL)
+    {
         printf("文件创建失败！无法下载学生信息\n");
         return;
     }
@@ -1076,8 +1199,10 @@ void teacherDownloadStudentInfo(){
     // 6. 遍历链表，筛选当前老师管理的班级数据并写入
     Student* temp = stuListHead;
     int count = 0;  // 统计下载的学生数量
-    while (temp != NULL){
-        if (strcmp(temp->classname, loginTeacherClass) == 0){
+    while (temp != NULL)
+    {
+        if (strcmp(temp->classname, loginTeacherClass) == 0)
+        {
             count++;
             // 按CSV格式写入（逗号分隔，方便Excel打开）
             fprintf(fp, "%s,%s,%s,%d,%d,%d,%d,%d,%d,%.1f,%d\n",
@@ -1090,37 +1215,44 @@ void teacherDownloadStudentInfo(){
     }
     // 7. 关闭文件并提示结果
     fclose(fp);
-    if (count == 0){
+    if (count == 0)
+    {
         printf("你管理的班级（%s）暂无学生数据，已创建空文件：%s\n", loginTeacherClass, filename);
         // 可选：删除空文件
         // remove(filename);
         // printf("你管理的班级（%s）暂无学生数据，未创建文件\n", loginTeacherClass);
     }
-    else{
+    else
+    {
         printf("下载成功！共导出 %d 名学生信息\n", count);
         printf("文件路径：%s\n", filename);
     }
 }
+
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct Admin {
+typedef struct Admin
+{
     char id[MAX_ID_LEN];           //学号
     char password[PASSWORD_LEN];   //密码
     char name[MAX_NAME_LEN];       //姓名
 };
-
 // 管理员登录验证：返回1成功，0失败，-1文件错误
-int adminLogin(char* inputId, char* inputPwd) {
+int adminLogin(char* inputId, char* inputPwd)
+{
     FILE* fp;
     errno_t err = fopen_s(&fp, ADMIN_FILE, "rb");
-    if (err != 0 || fp == NULL) {
+    if (err != 0 || fp == NULL)
+    {
         printf("管理员账号文件不存在或打开失败！\n");
         return -1;
     }
     Admin admin;
-    while (fread(&admin, sizeof(Admin), 1, fp) == 1) {
+    while (fread(&admin, sizeof(Admin), 1, fp) == 1)
+    {
         // 比对管理员工号和密码
-        if (strcmp(admin.id, inputId) == 0 && strcmp(admin.password, inputPwd) == 0) {
+        if (strcmp(admin.id, inputId) == 0 && strcmp(admin.password, inputPwd) == 0)
+        {
             fclose(fp);
             printf("登录成功！欢迎进入管理员后台系统\n");
             printf("【提示】你拥有最高权限，可管理所有账号和成绩数据\n");
@@ -1131,14 +1263,15 @@ int adminLogin(char* inputId, char* inputPwd) {
     printf("管理员工号或密码错误！\n");
     return 0;
 }
-
 // 管理员账号注册：返回1成功，0失败（账号已存在），-1文件错误
 // 注：实际项目中管理员账号通常由超级管理员创建，此函数仅用于测试
-int adminRegister() {
+int adminRegister()
+{
     Admin newAdmin;
     FILE* fp;
     errno_t err = fopen_s(&fp, ADMIN_FILE, "ab+");
-    if (err != 0 || fp == NULL) {
+    if (err != 0 || fp == NULL)
+    {
         printf("文件打开失败！\n");
         return -1;
     }
@@ -1147,8 +1280,10 @@ int adminRegister() {
     scanf("%s", newAdmin.id);
     Admin temp;
     fseek(fp, 0, SEEK_SET);
-    while (fread(&temp, sizeof(Admin), 1, fp) == 1) {
-        if (strcmp(temp.id, newAdmin.id) == 0) {
+    while (fread(&temp, sizeof(Admin), 1, fp) == 1)
+    {
+        if (strcmp(temp.id, newAdmin.id) == 0)
+        {
             fclose(fp);
             printf("该管理员工号已注册！\n");
             return 0;
@@ -1159,7 +1294,8 @@ int adminRegister() {
     inputPassword(pwd1, 20);
     printf("请再次输入密码：");
     inputPassword(pwd2, 20);
-    if (strcmp(pwd1, pwd2) != 0) {
+    if (strcmp(pwd1, pwd2) != 0)
+    {
         fclose(fp);
         printf("两次密码输入不一致！\n");
         return 0;
@@ -1171,19 +1307,22 @@ int adminRegister() {
     printf("管理员账号注册成功！\n");
     return 1;
 }
-
 // 修改管理员密码：输入原工号和原密码，验证通过后修改
-int changeAdminPwd(char* inputId, char* oldPwd) {
+int changeAdminPwd(char* inputId, char* oldPwd)
+{
     FILE* fp;
     errno_t err = fopen_s(&fp, ADMIN_FILE, "rb+");
-    if (err != 0 || fp == NULL) {
+    if (err != 0 || fp == NULL)
+    {
         printf("文件打开失败！\n");
         return -1;
     }
     Admin admin;
     int found = 0;
-    while (fread(&admin, sizeof(Admin), 1, fp) == 1) {
-        if (strcmp(admin.id, inputId) == 0 && strcmp(admin.password, oldPwd) == 0) {
+    while (fread(&admin, sizeof(Admin), 1, fp) == 1)
+    {
+        if (strcmp(admin.id, inputId) == 0 && strcmp(admin.password, oldPwd) == 0)
+        {
             found = 1;
             // 输入新密码
             char newPwd1[20], newPwd2[20];
@@ -1191,7 +1330,8 @@ int changeAdminPwd(char* inputId, char* oldPwd) {
             inputPassword(newPwd1, 20);
             printf("请再次输入新密码：");
             inputPassword(newPwd2, 20);
-            if (strcmp(newPwd1, newPwd2) != 0) {
+            if (strcmp(newPwd1, newPwd2) != 0)
+            {
                 fclose(fp);
                 printf("两次密码不一致！\n");
                 return 0;
@@ -1203,17 +1343,558 @@ int changeAdminPwd(char* inputId, char* oldPwd) {
             break;
         }
     }
-
     fclose(fp);
-    if (!found) {
+    if (!found)
+    {
         printf("管理员工号或原密码错误！\n");
         return 0;
     }
     printf("密码修改成功！\n");
     return 1;
 }
+
+// 统计信息显示
+void adminViewDashboard() {
+    // 统计学生
+    int stuCount = 0, noScoreCount = 0;
+    Student* temp = stuListHead;
+    while (temp) {
+        stuCount++;
+        if (temp->chinese == 0 && temp->math == 0 && temp->english == 0 &&
+            temp->physics == 0 && temp->chemistry == 0 && temp->biology == 0)
+            noScoreCount++;
+        temp = temp->next;
+    }
+
+    // 统计教师
+    FILE* fp = fopen(TEACHER_FILE, "rb");
+    int teaCount = 0;
+    Teacher tea;
+    if (fp) {
+        while (fread(&tea, sizeof(Teacher), 1, fp) == 1) teaCount++;
+        fclose(fp);
+    }
+
+    // 统计管理员
+    fp = fopen(ADMIN_FILE, "rb");
+    int adminCount = 0;
+    Admin adm;
+    if (fp) {
+        while (fread(&adm, sizeof(Admin), 1, fp) == 1) adminCount++;
+        fclose(fp);
+    }
+
+    printf("\n========== 系统代办与统计 ==========\n");
+    printf("学生总数：%d\n", stuCount);
+    printf("教师总数：%d\n", teaCount);
+    printf("管理员总数：%d\n", adminCount);
+    printf("未录入成绩的学生数：%d\n", noScoreCount);
+    printf("====================================\n");
+}
+
+// 通用函数：检查账号是否存在（用于增删改查时的重复性校验）
+int accountExists(const char* id, const char* role) {
+    FILE* fp = NULL;
+    if (strcmp(role, "student") == 0) fp = fopen(STUDENT_FILE, "rb");
+    else if (strcmp(role, "teacher") == 0) fp = fopen(TEACHER_FILE, "rb");
+    else if (strcmp(role, "admin") == 0) fp = fopen(ADMIN_FILE, "rb");
+    else return 0;
+
+    if (!fp) return 0;
+    if (strcmp(role, "student") == 0) {
+        Student s;
+        while (fread(&s, sizeof(Student), 1, fp) == 1)
+            if (strcmp(s.id, id) == 0) { fclose(fp); return 1; }
+    }
+    else if (strcmp(role, "teacher") == 0) {
+        Teacher t;
+        while (fread(&t, sizeof(Teacher), 1, fp) == 1)
+            if (strcmp(t.id, id) == 0) { fclose(fp); return 1; }
+    }
+    else if (strcmp(role, "admin") == 0) {
+        Admin a;
+        while (fread(&a, sizeof(Admin), 1, fp) == 1)
+            if (strcmp(a.id, id) == 0) { fclose(fp); return 1; }
+    }
+    fclose(fp);
+    return 0;
+}
+
+// 管理员增加账号
+void adminAddAccount() {
+    printf("\n请选择要添加的账号类型：\n");
+    printf("1. 学生\n2. 教师\n3. 管理员\n请选择：");
+    int type; scanf("%d", &type); clearInputBuffer();
+
+    char id[20];
+    printf("请输入账号（学号/工号）：");
+    scanf("%s", id); clearInputBuffer();
+
+    if (accountExists(id, type == 1 ? "student" : (type == 2 ? "teacher" : "admin"))) {
+        printf("该账号已存在！\n");
+        return;
+    }
+
+    if (type == 1) { // 学生
+        Student newStu;
+        strcpy(newStu.id, id);
+        printf("请输入姓名："); scanf("%s", newStu.name);
+        printf("请输入班级："); scanf("%s", newStu.classname);
+        printf("请输入年龄："); scanf("%d", &newStu.age);
+        printf("请输入性别(M/F)："); scanf(" %c", &newStu.sex);
+        newStu.chinese = newStu.math = newStu.english = newStu.physics = newStu.chemistry = newStu.biology = 0;
+        calculateTotalScore(&newStu);
+        newStu.rank = 0;
+        // 默认密码：学号后6位
+        char pwd[PASSWORD_LEN] = { 0 };
+        int len = strlen(newStu.id);
+        if (len >= 6) strncpy(pwd, newStu.id + len - 6, 6);
+        else { strcpy(pwd, newStu.id); for (int i = len; i < 6; i++) pwd[i] = '0'; }
+        strcpy(newStu.password, pwd);
+
+        FILE* fp = fopen(STUDENT_FILE, "ab");
+        if (fp) { fwrite(&newStu, sizeof(Student), 1, fp); fclose(fp); }
+        printf("学生添加成功！初始密码：%s\n", pwd);
+        loadStudentsToLinkList();
+    }
+    else if (type == 2) { // 教师
+        Teacher newTea;
+        strcpy(newTea.id, id);
+        printf("请输入姓名："); scanf("%s", newTea.name);
+        printf("请输入管理的班级："); scanf("%s", newTea.classname);
+        printf("请输入年龄："); scanf("%d", &newTea.age);
+        printf("请输入性别(M/F)："); scanf(" %c", &newTea.sex);
+        // 默认密码：工号后6位
+        char pwd[PASSWORD_LEN] = { 0 };
+        int len = strlen(newTea.id);
+        if (len >= 6) strncpy(pwd, newTea.id + len - 6, 6);
+        else { strcpy(pwd, newTea.id); for (int i = len; i < 6; i++) pwd[i] = '0'; }
+        strcpy(newTea.password, pwd);
+
+        FILE* fp = fopen(TEACHER_FILE, "ab");
+        if (fp) { fwrite(&newTea, sizeof(Teacher), 1, fp); fclose(fp); }
+        printf("教师添加成功！初始密码：%s\n", pwd);
+    }
+    else if (type == 3) { // 管理员
+        Admin newAd;
+        strcpy(newAd.id, id);
+        printf("请输入姓名："); scanf("%s", newAd.name);
+        // 默认密码：工号后6位
+        char pwd[PASSWORD_LEN] = { 0 };
+        int len = strlen(newAd.id);
+        if (len >= 6) strncpy(pwd, newAd.id + len - 6, 6);
+        else { strcpy(pwd, newAd.id); for (int i = len; i < 6; i++) pwd[i] = '0'; }
+        strcpy(newAd.password, pwd);
+
+        FILE* fp = fopen(ADMIN_FILE, "ab");
+        if (fp) { fwrite(&newAd, sizeof(Admin), 1, fp); fclose(fp); }
+        printf("管理员添加成功！初始密码：%s\n", pwd);
+    }
+}
+
+// 管理员删除账号
+void adminDeleteAccount() {
+    printf("\n请选择要删除的账号类型：\n");
+    printf("1. 学生\n2. 教师\n3. 管理员\n请选择：");
+    int type; scanf("%d", &type); clearInputBuffer();
+
+    char id[20];
+    printf("请输入要删除的账号：");
+    scanf("%s", id); clearInputBuffer();
+
+    const char* role = type == 1 ? "student" : (type == 2 ? "teacher" : "admin");
+    if (!accountExists(id, role)) {
+        printf("该账号不存在！\n");
+        return;
+    }
+
+    // 确认删除
+    printf("确认删除该账号？(y/n)：");
+    char confirm; scanf(" %c", &confirm);
+    if (confirm != 'y' && confirm != 'Y') { printf("取消删除\n"); return; }
+
+    FILE* fp = NULL;
+    FILE* tempFp = tmpfile(); // 临时文件，或使用实际文件重命名
+    if (type == 1) {
+        fp = fopen(STUDENT_FILE, "rb");
+        if (!fp) return;
+        Student s;
+        FILE* newFp = fopen("temp_stu.bin", "wb");
+        while (fread(&s, sizeof(Student), 1, fp) == 1) {
+            if (strcmp(s.id, id) != 0)
+                fwrite(&s, sizeof(Student), 1, newFp);
+        }
+        fclose(fp); fclose(newFp);
+        remove(STUDENT_FILE);
+        rename("temp_stu.bin", STUDENT_FILE);
+        loadStudentsToLinkList();
+    }
+    else if (type == 2) {
+        fp = fopen(TEACHER_FILE, "rb");
+        if (!fp) return;
+        Teacher t;
+        FILE* newFp = fopen("temp_tea.bin", "wb");
+        while (fread(&t, sizeof(Teacher), 1, fp) == 1) {
+            if (strcmp(t.id, id) != 0)
+                fwrite(&t, sizeof(Teacher), 1, newFp);
+        }
+        fclose(fp); fclose(newFp);
+        remove(TEACHER_FILE);
+        rename("temp_tea.bin", TEACHER_FILE);
+    }
+    else if (type == 3) {
+        fp = fopen(ADMIN_FILE, "rb");
+        if (!fp) return;
+        Admin a;
+        FILE* newFp = fopen("temp_adm.bin", "wb");
+        while (fread(&a, sizeof(Admin), 1, fp) == 1) {
+            if (strcmp(a.id, id) != 0)
+                fwrite(&a, sizeof(Admin), 1, newFp);
+        }
+        fclose(fp); fclose(newFp);
+        remove(ADMIN_FILE);
+        rename("temp_adm.bin", ADMIN_FILE);
+    }
+    printf("删除成功！\n");
+}
+
+// 管理员修改账号信息（不包括密码，如需重置密码可单独处理）
+void adminModifyAccount() {
+    printf("\n请选择要修改的账号类型：\n");
+    printf("1. 学生\n2. 教师\n3. 管理员\n请选择：");
+    int type; scanf("%d", &type); clearInputBuffer();
+
+    char id[20];
+    printf("请输入要修改的账号：");
+    scanf("%s", id); clearInputBuffer();
+
+    const char* role = type == 1 ? "student" : (type == 2 ? "teacher" : "admin");
+    if (!accountExists(id, role)) {
+        printf("该账号不存在！\n");
+        return;
+    }
+
+    // 读取原数据并修改
+    FILE* fp = NULL;
+    long pos;
+    if (type == 1) {
+        fp = fopen(STUDENT_FILE, "rb+");
+        if (!fp) return;
+        Student s;
+        while (fread(&s, sizeof(Student), 1, fp) == 1) {
+            if (strcmp(s.id, id) == 0) {
+                pos = ftell(fp) - (long)sizeof(Student);
+                printf("当前信息：姓名=%s 班级=%s 年龄=%d 性别=%c\n", s.name, s.classname, s.age, s.sex);
+                printf("请输入新姓名（回车保留）：");
+                char buf[50]; scanf("%[^\n]", buf); clearInputBuffer();
+                if (strlen(buf) > 0) strcpy(s.name, buf);
+                printf("请输入新班级（回车保留）：");
+                scanf("%[^\n]", buf); clearInputBuffer();
+                if (strlen(buf) > 0) strcpy(s.classname, buf);
+                printf("请输入新年龄（回车保留）：");
+                scanf("%[^\n]", buf); clearInputBuffer();
+                if (strlen(buf) > 0) s.age = atoi(buf);
+                printf("请输入新性别(M/F)（回车保留）：");
+                scanf(" %c", &buf[0]); clearInputBuffer();
+                if (buf[0] != '\n') s.sex = buf[0];
+
+                fseek(fp, pos, SEEK_SET);
+                fwrite(&s, sizeof(Student), 1, fp);
+                break;
+            }
+        }
+        fclose(fp);
+        loadStudentsToLinkList();
+    }
+    else if (type == 2) {
+        fp = fopen(TEACHER_FILE, "rb+");
+        if (!fp) return;
+        Teacher t;
+        while (fread(&t, sizeof(Teacher), 1, fp) == 1) {
+            if (strcmp(t.id, id) == 0) {
+                pos = ftell(fp) - (long)sizeof(Teacher);
+                printf("当前信息：姓名=%s 班级=%s 年龄=%d 性别=%c\n", t.name, t.classname, t.age, t.sex);
+                char buf[50];
+                printf("请输入新姓名（回车保留）：");
+                scanf("%[^\n]", buf); clearInputBuffer();
+                if (strlen(buf) > 0) strcpy(t.name, buf);
+                printf("请输入新班级（回车保留）：");
+                scanf("%[^\n]", buf); clearInputBuffer();
+                if (strlen(buf) > 0) strcpy(t.classname, buf);
+                printf("请输入新年龄（回车保留）：");
+                scanf("%[^\n]", buf); clearInputBuffer();
+                if (strlen(buf) > 0) t.age = atoi(buf);
+                printf("请输入新性别(M/F)（回车保留）：");
+                scanf(" %c", &buf[0]); clearInputBuffer();
+                if (buf[0] != '\n') t.sex = buf[0];
+
+                fseek(fp, pos, SEEK_SET);
+                fwrite(&t, sizeof(Teacher), 1, fp);
+                break;
+            }
+        }
+        fclose(fp);
+    }
+    else if (type == 3) {
+        fp = fopen(ADMIN_FILE, "rb+");
+        if (!fp) return;
+        Admin a;
+        while (fread(&a, sizeof(Admin), 1, fp) == 1) {
+            if (strcmp(a.id, id) == 0) {
+                pos = ftell(fp) - (long)sizeof(Admin);
+                printf("当前姓名：%s\n", a.name);
+                printf("请输入新姓名（回车保留）：");
+                char buf[50]; scanf("%[^\n]", buf); clearInputBuffer();
+                if (strlen(buf) > 0) strcpy(a.name, buf);
+                fseek(fp, pos, SEEK_SET);
+                fwrite(&a, sizeof(Admin), 1, fp);
+                break;
+            }
+        }
+        fclose(fp);
+    }
+    printf("修改成功！\n");
+}
+
+// 管理员查询账号
+void adminQueryAccount() {
+    printf("\n请选择要查询的账号类型：\n");
+    printf("1. 学生\n2. 教师\n3. 管理员\n请选择：");
+    int type; scanf("%d", &type); clearInputBuffer();
+
+    printf("查询方式：1.按账号  2.按姓名\n请选择：");
+    int method; scanf("%d", &method); clearInputBuffer();
+
+    char keyword[50];
+    if (method == 1) printf("请输入账号：");
+    else printf("请输入姓名：");
+    scanf("%[^\n]", keyword); clearInputBuffer();
+
+    int found = 0;
+    if (type == 1) {
+        Student* temp = stuListHead;
+        while (temp) {
+            if ((method == 1 && strcmp(temp->id, keyword) == 0) ||
+                (method == 2 && strcmp(temp->name, keyword) == 0)) {
+                printf("学号：%s 姓名：%s 班级：%s 年龄：%d 性别：%c 总分：%.1f 排名：%d\n",
+                    temp->id, temp->name, temp->classname, temp->age, temp->sex, temp->total_score, temp->rank);
+                found = 1;
+            }
+            temp = temp->next;
+        }
+    }
+    else if (type == 2) {
+        FILE* fp = fopen(TEACHER_FILE, "rb");
+        if (fp) {
+            Teacher t;
+            while (fread(&t, sizeof(Teacher), 1, fp) == 1) {
+                if ((method == 1 && strcmp(t.id, keyword) == 0) ||
+                    (method == 2 && strcmp(t.name, keyword) == 0)) {
+                    printf("工号：%s 姓名：%s 班级：%s 年龄：%d 性别：%c\n",
+                        t.id, t.name, t.classname, t.age, t.sex);
+                    found = 1;
+                }
+            }
+            fclose(fp);
+        }
+    }
+    else if (type == 3) {
+        FILE* fp = fopen(ADMIN_FILE, "rb");
+        if (fp) {
+            Admin a;
+            while (fread(&a, sizeof(Admin), 1, fp) == 1) {
+                if ((method == 1 && strcmp(a.id, keyword) == 0) ||
+                    (method == 2 && strcmp(a.name, keyword) == 0)) {
+                    printf("工号：%s 姓名：%s\n", a.id, a.name);
+                    found = 1;
+                }
+            }
+            fclose(fp);
+        }
+    }
+    if (!found) printf("未找到匹配的账号！\n");
+}
+
+// 管理员增删改查菜单
+void adminManageAccounts() {
+    while (1) {
+        system("cls");
+        printf("*************************************************\n");
+        printf("**           账号增删改查管理                  **\n");
+        printf("**                                             **\n");
+        printf("**         1. 增加账号                         **\n");
+        printf("**         2. 删除账号                         **\n");
+        printf("**         3. 修改账号信息                     **\n");
+        printf("**         4. 查询账号                         **\n");
+        printf("**         5. 返回上一级                       **\n");
+        printf("**                                             **\n");
+        printf("*************************************************\n");
+        printf("请选择操作：");
+        int op; scanf("%d", &op); clearInputBuffer();
+
+        switch (op) {
+        case 1: adminAddAccount(); break;
+        case 2: adminDeleteAccount(); break;
+        case 3: adminModifyAccount(); break;
+        case 4: adminQueryAccount(); break;
+        case 5: return;
+        default: printf("无效选择！\n"); break;
+        }
+        printf("\n按任意键继续...");
+        _getch();
+    }
+}
+
+// 从文件导入账号（CSV格式）
+void adminImportFromFile() {
+    printf("\n请选择导入的账号类型：\n");
+    printf("1. 学生\n2. 教师\n3. 管理员\n请选择：");
+    int type; scanf("%d", &type); clearInputBuffer();
+
+    char filename[100];
+    printf("请输入CSV文件路径：");
+    scanf("%s", filename); clearInputBuffer();
+
+    FILE* csv = fopen(filename, "r");
+    if (!csv) { printf("文件打开失败！\n"); return; }
+
+    char line[256];
+    int success = 0, fail = 0;
+    while (fgets(line, sizeof(line), csv)) {
+        // 跳过空行和标题行（可选，这里简单处理，假设每行都是有效数据）
+        if (line[0] == '\n' || line[0] == '#') continue;
+        char* token;
+        char* next_token = NULL;
+        if (type == 1) { // 学生格式：学号,姓名,班级,年龄,性别
+            Student s;
+            token = strtok_s(line, ",", &next_token);
+            if (!token) continue;
+            strcpy(s.id, token);
+            token = strtok_s(NULL, ",", &next_token); strcpy(s.name, token);
+            token = strtok_s(NULL, ",", &next_token); strcpy(s.classname, token);
+            token = strtok_s(NULL, ",", &next_token); s.age = atoi(token);
+            token = strtok_s(NULL, ",", &next_token); s.sex = token[0];
+            s.chinese = s.math = s.english = s.physics = s.chemistry = s.biology = 0;
+            calculateTotalScore(&s);
+            s.rank = 0;
+            // 默认密码
+            char pwd[PASSWORD_LEN] = { 0 };
+            int len = strlen(s.id);
+            if (len >= 6) strncpy(pwd, s.id + len - 6, 6);
+            else { strcpy(pwd, s.id); for (int i = len; i < 6; i++) pwd[i] = '0'; }
+            strcpy(s.password, pwd);
+
+            if (!accountExists(s.id, "student")) {
+                FILE* fp = fopen(STUDENT_FILE, "ab");
+                if (fp) { fwrite(&s, sizeof(Student), 1, fp); fclose(fp); success++; }
+                else fail++;
+            }
+            else fail++;
+        }
+        else if (type == 2) { // 教师格式：工号,姓名,班级,年龄,性别
+            Teacher t;
+            token = strtok_s(line, ",", &next_token);
+            if (!token) continue;
+            strcpy(t.id, token);
+            token = strtok_s(NULL, ",", &next_token); strcpy(t.name, token);
+            token = strtok_s(NULL, ",", &next_token); strcpy(t.classname, token);
+            token = strtok_s(NULL, ",", &next_token); t.age = atoi(token);
+            token = strtok_s(NULL, ",", &next_token); t.sex = token[0];
+            char pwd[PASSWORD_LEN] = { 0 };
+            int len = strlen(t.id);
+            if (len >= 6) strncpy(pwd, t.id + len - 6, 6);
+            else { strcpy(pwd, t.id); for (int i = len; i < 6; i++) pwd[i] = '0'; }
+            strcpy(t.password, pwd);
+
+            if (!accountExists(t.id, "teacher")) {
+                FILE* fp = fopen(TEACHER_FILE, "ab");
+                if (fp) { fwrite(&t, sizeof(Teacher), 1, fp); fclose(fp); success++; }
+                else fail++;
+            }
+            else fail++;
+        }
+        else if (type == 3) { // 管理员格式：工号,姓名
+            Admin a;
+            token = strtok_s(line, ",", &next_token);
+            if (!token) continue;
+            strcpy(a.id, token);
+            token = strtok_s(NULL, ",", &next_token); strcpy(a.name, token);
+            char pwd[PASSWORD_LEN] = { 0 };
+            int len = strlen(a.id);
+            if (len >= 6) strncpy(pwd, a.id + len - 6, 6);
+            else { strcpy(pwd, a.id); for (int i = len; i < 6; i++) pwd[i] = '0'; }
+            strcpy(a.password, pwd);
+
+            if (!accountExists(a.id, "admin")) {
+                FILE* fp = fopen(ADMIN_FILE, "ab");
+                if (fp) { fwrite(&a, sizeof(Admin), 1, fp); fclose(fp); success++; }
+                else fail++;
+            }
+            else fail++;
+        }
+    }
+    fclose(csv);
+    if (type == 1) loadStudentsToLinkList();
+    printf("导入完成：成功 %d 条，失败 %d 条（账号重复或文件错误）\n", success, fail);
+}
+
+// 导出账号到CSV文件
+void adminExportToFile() {
+    printf("\n请选择导出的账号类型：\n");
+    printf("1. 学生\n2. 教师\n3. 管理员\n请选择：");
+    int type; scanf("%d", &type); clearInputBuffer();
+
+    char filename[100];
+    printf("请输入导出CSV文件路径：");
+    scanf("%s", filename); clearInputBuffer();
+
+    FILE* csv = fopen(filename, "w");
+    if (!csv) { printf("文件创建失败！\n"); return; }
+
+    int count = 0;
+    if (type == 1) {
+        fprintf(csv, "学号,姓名,班级,年龄,性别,语文,数学,英语,物理,化学,生物,总分,排名\n");
+        Student* temp = stuListHead;
+        while (temp) {
+            fprintf(csv, "%s,%s,%s,%d,%c,%d,%d,%d,%d,%d,%d,%.1f,%d\n",
+                temp->id, temp->name, temp->classname, temp->age, temp->sex,
+                temp->chinese, temp->math, temp->english, temp->physics, temp->chemistry, temp->biology,
+                temp->total_score, temp->rank);
+            count++;
+            temp = temp->next;
+        }
+    }
+    else if (type == 2) {
+        fprintf(csv, "工号,姓名,班级,年龄,性别\n");
+        FILE* fp = fopen(TEACHER_FILE, "rb");
+        if (fp) {
+            Teacher t;
+            while (fread(&t, sizeof(Teacher), 1, fp) == 1) {
+                fprintf(csv, "%s,%s,%s,%d,%c\n", t.id, t.name, t.classname, t.age, t.sex);
+                count++;
+            }
+            fclose(fp);
+        }
+    }
+    else if (type == 3) {
+        fprintf(csv, "工号,姓名\n");
+        FILE* fp = fopen(ADMIN_FILE, "rb");
+        if (fp) {
+            Admin a;
+            while (fread(&a, sizeof(Admin), 1, fp) == 1) {
+                fprintf(csv, "%s,%s\n", a.id, a.name);
+                count++;
+            }
+            fclose(fp);
+        }
+    }
+    fclose(csv);
+    printf("导出成功！共导出 %d 条记录到 %s\n", count, filename);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////
-void welcomeScreen() {
+void welcomeScreen()
+{
     cout << "*************************************************" << endl;
     cout << "*************************************************" << endl;
     cout << "**                                             **" << endl;
@@ -1230,7 +1911,8 @@ void welcomeScreen() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
-void loginscreen() {
+void loginscreen()
+{
     cout << "*************************************************" << endl;
     cout << "*************************************************" << endl;
     cout << "**                     登录                    **" << endl;
@@ -1245,7 +1927,8 @@ void loginscreen() {
     cout << "*************************************************" << endl;
 }
 ////////////////////////////////////////////////////////////////////////////////////
-void studentMainscreen() {
+void studentMainscreen()
+{
     cout << "*************************************************" << endl;
     cout << "*************************************************" << endl;
     cout << "**                   Student                   **" << endl;
@@ -1259,7 +1942,8 @@ void studentMainscreen() {
     cout << "*************************************************" << endl;
 }
 //////////////////////////////////////////////////////////////////////////////////
-void teacherMainscreen() {
+void teacherMainscreen()
+{
     cout << "*************************************************" << endl;
     cout << "*************************************************" << endl;
     cout << "**                   Teacher                   **" << endl;
@@ -1273,7 +1957,8 @@ void teacherMainscreen() {
     cout << "*************************************************" << endl;
     cout << "*************************************************" << endl;
 }
-void teacherSonscreen(){
+void teacherSonscreen()
+{
     cout << "*************************************************" << endl;
     cout << "*************************************************" << endl;
     cout << "**                   Teacher                   **" << endl;
@@ -1288,7 +1973,8 @@ void teacherSonscreen(){
     cout << "*************************************************" << endl;
 }
 ///////////////////////////////////////////////////////////////////////////////////
-void managerMainscreen() {
+void managerMainscreen()
+{
     cout << "*************************************************" << endl;
     cout << "*************************************************" << endl;
     cout << "**                   Manager                   **" << endl;
@@ -1303,7 +1989,8 @@ void managerMainscreen() {
     cout << "*************************************************" << endl;
 }
 
-int main(){
+int main()
+{
     // 新增：程序启动时加载学生数据到链表
     loadStudentsToLinkList();
 first:
@@ -1315,24 +2002,28 @@ first:
     cin >> op;
     char ch;
     system("cls");
-    switch (op){
+    switch (op)
+    {
     case 1://student端
     a:
         loginscreen();
         cout << "请输入您所需的操作：";
         int op1;
         cin >> op1;
-        switch (op1){
+        switch (op1)
+        {
         case 1://直接登录
             cout << "请输入账号：";
             cin >> inID;
             inputPassword(inpassWord, 20);
-            if (studentLogin(inID, inpassWord)){
+            if (studentLogin(inID, inpassWord))
+            {
                 Sleep(2100);
                 system("cls");
                 goto s;
             }
-            else{
+            else
+            {
                 Sleep(2100);
                 system("cls");
                 goto a;
@@ -1346,6 +2037,9 @@ first:
             printf("请输入原密码：");
             inputPassword(inpassWord, 20);
             changeStudentPwd(inID, inpassWord);
+            Sleep(2100);
+            system("cls");
+            goto a;
             break;
         case 4://密码注册
             studentRegister();
@@ -1365,17 +2059,20 @@ first:
         cout << "请输入您所需的操作：";
         int op2;
         cin >> op2;
-        switch (op2){
+        switch (op2)
+        {
         case 1://直接登录
             cout << "请输入账号：";
             cin >> inID;
             inputPassword(inpassWord, 20);
-            if (teacherLogin(inID, inpassWord)){
+            if (teacherLogin(inID, inpassWord))
+            {
                 Sleep(2100);
                 system("cls");
                 goto t;
             }
-            else{
+            else
+            {
                 Sleep(2100);
                 system("cls");
                 goto b;
@@ -1389,6 +2086,9 @@ first:
             printf("请输入原密码：");
             inputPassword(inpassWord, 20);
             changeTeacherPwd(inID, inpassWord);
+            Sleep(2100);
+            system("cls");
+            goto b;
             break;
         case 4://密码注册
             teacherRegister();
@@ -1408,17 +2108,20 @@ first:
         cout << "请输入您所需的操作：";
         int op3;
         cin >> op3;
-        switch (op3){
+        switch (op3)
+        {
         case 1://直接登录
             cout << "请输入管理员工号：";
             cin >> inID;
             inputPassword(inpassWord, 20);
-            if (adminLogin(inID, inpassWord)){
+            if (adminLogin(inID, inpassWord))
+            {
                 Sleep(2100);
                 system("cls");
                 goto m;
             }
-            else{
+            else
+            {
                 Sleep(2100);
                 system("cls");
                 goto c;
@@ -1451,21 +2154,24 @@ s:
     cout << "请输入您所需的操作：";
     int ops;
     cin >> ops;
-    switch (ops){
+    switch (ops)
+    {
     case 1://查询个人成绩
         queryMyScore();
         cout << endl << "按ESC退出...";
         ch = _getch();
-        if (ch == 27){
+        if (ch == 27)
+        {
             system("cls");
             goto s;
         }
         break;
     case 2://查询班级成绩
-        queryClassScore();
+        queryClassScore(loginStudent.classname);
         cout << endl << "按ESC退出...";
         ch = _getch();
-        if (ch == 27){
+        if (ch == 27)
+        {
             system("cls");
             goto s;
         }
@@ -1474,7 +2180,8 @@ s:
         analyzeMyScore();
         cout << endl << "按ESC退出...";
         ch = _getch();
-        if (ch == 27){
+        if (ch == 27)
+        {
             system("cls");
             goto s;
         }
@@ -1490,7 +2197,8 @@ t:
     cout << "请输入您所需的操作：";
     int opt;
     cin >> opt;
-    switch (opt){
+    switch (opt)
+    {
     case 1://增删改查学生信息
     t1:
         system("cls");
@@ -1498,12 +2206,14 @@ t:
         int opzscg;
         cout << "请输入您所需的操作：";
         cin >> opzscg;
-        switch (opzscg){
+        switch (opzscg)
+        {
         case 1:
             teacherAddStudent();
             cout << endl << "按ESC退出...";
             ch = _getch();
-            if (ch == 27){
+            if (ch == 27)
+            {
                 system("cls");
                 goto t1;
             }
@@ -1513,7 +2223,8 @@ t:
             teacherDeleteStudent();
             cout << endl << "按ESC退出...";
             ch = _getch();
-            if (ch == 27){
+            if (ch == 27)
+            {
                 system("cls");
                 goto t1;
             }
@@ -1523,7 +2234,8 @@ t:
             teacherModifyStudentScore();
             cout << endl << "按ESC退出...";
             ch = _getch();
-            if (ch == 27){
+            if (ch == 27)
+            {
                 system("cls");
                 goto t1;
             }
@@ -1533,7 +2245,8 @@ t:
             teacherQueryStudent();
             cout << endl << "按ESC退出...";
             ch = _getch();
-            if (ch == 27){
+            if (ch == 27)
+            {
                 system("cls");
                 goto t1;
             }
@@ -1545,21 +2258,23 @@ t:
         }
         break;
     case 2:
-        queryClassScore();
+        queryClassScore(loginTeacherClass);
         cout << endl << "按ESC退出...";
         ch = _getch();
-        if (ch == 27){
+        if (ch == 27)
+        {
             system("cls");
             goto t;
         }
         break;
     case 3://成绩分析
         system("cls");
-        teacherSonscreen();
+        teacherMainscreen();
         teacherAnalyzeScore();
         cout << endl << "按ESC退出...";
         ch = _getch();
-        if (ch == 27){
+        if (ch == 27)
+        {
             system("cls");
             goto t;
         }
@@ -1568,7 +2283,8 @@ t:
         teacherDownloadStudentInfo();
         cout << endl << "按ESC退出...";
         ch = _getch();
-        if (ch == 27){
+        if (ch == 27)
+        {
             system("cls");
             goto t;
         }
@@ -1584,10 +2300,37 @@ m:
     cout << "请输入您所需的操作：";
     int opm;
     cin >> opm;
-    switch (opm){
+    switch (opm)
+    {
     case 1:
+        adminViewDashboard();
+        cout << endl << "按任意键返回...";
+        _getch();
+        system("cls");
+        goto m;
         break;
     case 2:
+        adminManageAccounts();
+        system("cls");
+        goto m;
+        break;
+    case 3:
+        adminImportFromFile();
+        cout << endl << "按任意键返回...";
+        _getch();
+        system("cls");
+        goto m;
+        break;
+    case 4:
+        adminExportToFile();
+        cout << endl << "按任意键返回...";
+        _getch();
+        system("cls");
+        goto m;
+        break;
+    case 5:
+        system("cls");
+        goto c;
         break;
     }
     return 0;
